@@ -105,3 +105,25 @@ or with docker
 ```bash
 docker-compose up -d
 ```
+
+## Inital Setup
+
+Initial alembic setup
+
+```bash
+uv run alembic init alembic
+uv run alembic revision --autogenerate -m "create documents"
+uv run alembic upgrade head
+```
+
+## Actiivate PGVector
+```bash
+docker compose exec postgres psql -U ingestion -d ingestion
+```
+
+in postgres
+```text
+CREATE EXTENSION IF NOT EXISTS vector;
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+```
