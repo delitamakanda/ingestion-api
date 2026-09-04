@@ -1,3 +1,7 @@
 .venv
 .idea
 *.pycache
+.env
+data/
+dist/
+*.pyc
