@@ -93,3 +93,15 @@ ingestion-api/
     ├── retrieval/
     └── search/
 ```
+
+## Getting Started
+
+```bash
+uv run uvicorn ingestion_api.main:app --reload
+```
+
+or with docker
+
+```bash
+docker-compose up -d
+```
