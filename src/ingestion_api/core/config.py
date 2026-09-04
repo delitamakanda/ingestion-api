@@ -9,6 +9,8 @@ class Settings(BaseSettings):
 
     database_url: str
 
+    alembic_database_url: str
+
     upload_dir: str = "./data/uploads"
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
