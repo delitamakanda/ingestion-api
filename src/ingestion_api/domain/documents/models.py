@@ -1,14 +1,14 @@
 import uuid
 from datetime import datetime, date
 
-from sqlalchemy import Column, Integer, String, DateTime, Date, func
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy.dialects.postgresql import JSONB, UUID
-from sqlalchemy import ForeignKey, Text
 from pgvector.sqlalchemy import VECTOR
-
+from sqlalchemy import ForeignKey, Text
+from sqlalchemy import Integer, String, DateTime, Date, func
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.orm import Mapped, mapped_column
 
 from ingestion_api.core.models import Base
+
 
 class Document(Base):
     __tablename__ = "documents"
@@ -36,15 +36,17 @@ class DocumentChunk(Base):
 
     document_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("documents.id", ondelete="CASCADE"), index=True)
 
+    chunk_index: Mapped[int] = mapped_column(Integer, nullable=False)
+
     text: Mapped[str] = mapped_column(Text, nullable=False)
 
 
     sections: Mapped[str] = mapped_column(String(1000), nullable=False)
 
-    page_start: Mapped[int]
+    page_start: Mapped[int] = mapped_column(Integer, nullable=True)
 
-    page_end: Mapped[int]
+    page_end: Mapped[int] = mapped_column(Integer, nullable=True)
 
     metadata_: Mapped[dict] = mapped_column("metadata", JSONB, default=dict)
 
-    embedding: Mapped[list[float]] = mapped_column(VECTOR(1024))
+    embedding: Mapped[list[float]] = mapped_column(VECTOR(1024), nullable=True)
