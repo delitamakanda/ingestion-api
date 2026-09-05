@@ -2,9 +2,9 @@ import uuid
 from datetime import datetime, date
 
 from pgvector.sqlalchemy import VECTOR
-from sqlalchemy import ForeignKey, Text, ARRAY
+from sqlalchemy import ForeignKey, Text, text
 from sqlalchemy import Integer, String, DateTime, Date, func, Computed
-from sqlalchemy.dialects.postgresql import JSONB, UUID, TSVECTOR
+from sqlalchemy.dialects.postgresql import JSONB, UUID, TSVECTOR, ARRAY
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ingestion_api.core.models import Base
@@ -29,7 +29,11 @@ class Document(Base):
 
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-    countries: Mapped[list[str]] = mapped_column(ARRAY(String(2)), default=list, nullable=True)
+    countries: Mapped[list[str]] = mapped_column(
+        ARRAY(String(2)),
+        nullable=False,
+        default=list,
+    )
 
     language: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
