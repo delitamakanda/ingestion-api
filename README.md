@@ -127,3 +127,24 @@ CREATE EXTENSION IF NOT EXISTS vector;
 
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 ```
+
+## acces to postgres database
+```bash
+docker compose exec postgres psql -U ingestion -d ingestion
+
+SELECT
+    id,
+    file_name,
+    title,
+    status
+FROM documents;
+
+SELECT
+    document_id,
+    chunk_index,
+    page_start,
+    page_end,
+    LEFT(text, 200)
+FROM document_chunks
+ORDER BY document_id, chunk_index;
+```
