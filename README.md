@@ -113,6 +113,8 @@ Initial alembic setup
 ```bash
 uv run alembic init alembic
 uv run alembic revision --autogenerate -m "create documents"
+or 
+uv run alembic revision -m "add trigram search index"
 uv run alembic upgrade head
 ```
 
@@ -124,6 +126,8 @@ docker compose exec postgres psql -U ingestion -d ingestion
 in postgres
 ```text
 CREATE EXTENSION IF NOT EXISTS vector;
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
 
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 ```
@@ -147,4 +151,12 @@ SELECT
     LEFT(text, 200)
 FROM document_chunks
 ORDER BY document_id, chunk_index;
+
+
+SELECT
+    chunk_index,
+    sections,
+    search_vector
+FROM document_chunks
+LIMIT 5
 ```
