@@ -43,6 +43,8 @@ class Document(Base):
 
     source_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
+    source_url: Mapped[str | None] = mapped_column(String(2000), unique=True, nullable=True)
+
     authority: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     legal_references: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=True, default=list)

@@ -12,8 +12,8 @@ class SearchRouter:
             SearchMode.NATURAL_LANGUAGE: natural_language_strategy
         }
 
-    async def search(self, request: SearchRequest) -> SearchResponse:
+    async def search(self, request: SearchRequest, session) -> SearchResponse:
         strategy = self.strategies.get(request.mode)
         if not strategy:
             raise NotImplementedError(f"Search mode {request.mode} not implemented")
-        return await strategy.search(request)
+        return await strategy.search(request, session)

@@ -1,21 +1,32 @@
+from ingestion_api.core.config import settings
 from ingestion_api.domain.search.schemas import SearchRequest, SearchResponse, CitationSource, SearchResult, \
     NaturalLanguageAnswerResponse
 from ingestion_api.domain.search.strategies.base import SearchStrategy
 from ingestion_api.llm.agents.query_planner import QueryPlannerAgent
 from ingestion_api.llm.agents.synthesis import SynthesisAgent
 from ingestion_api.llm.agents.temporal import TemporalAgent
+from ingestion_api.llm.embeddings.sentence_transformer import SentenceTransformerEmbeddingService
 from ingestion_api.retrieval.hybrid import HybridRetriever
-
+from ingestion_api.domain.ingestion.parsers.web import WebParser
+from ingestion_api.domain.ingestion.pipeline import IngestionPipeline
+from ingestion_api.domain.ingestion.regulation_service import RegulationService
+from sqlalchemy.ext.asyncio import AsyncSession
 
 class NaturalLanguageSearchStrategy(SearchStrategy):
 
-    def __init__(self, query_planner: QueryPlannerAgent, hybrid_retriever: HybridRetriever, synthesis_agent: SynthesisAgent, temporal_agent: TemporalAgent):
+    def __init__(self, query_planner: QueryPlannerAgent, hybrid_retriever: HybridRetriever,
+                 synthesis_agent: SynthesisAgent, temporal_agent: TemporalAgent):
         self.query_planner = query_planner
         self.hybrid_retriever = hybrid_retriever
         self.synthesis_agent = synthesis_agent
         self.temporal_agent = temporal_agent
 
-    async def search(self, request: SearchRequest) -> SearchResponse:
+    async def search(self, request: SearchRequest, session: AsyncSession) -> SearchResponse:
+        regulation_service = RegulationService(session, web_parser=WebParser(),
+                                               pipeline=IngestionPipeline(session, SentenceTransformerEmbeddingService(model_name=settings.embedding_model)))
+        if request.regulation_urls:
+            await regulation_service.enrich_regulation(request.regulation_urls)
+
         plan = await self.query_planner.plan(request)
 
         timeline = None
@@ -35,11 +46,12 @@ class NaturalLanguageSearchStrategy(SearchStrategy):
                 timeline=timeline
             )
         )
-        return SearchResponse(results=[], query=request.query, mode=request.mode, total=len(results), sources=sources,answer=NaturalLanguageAnswerResponse(
-            summary=generated.summary,
-            claims=generated.claims,
-            insufficient_information=generated.insufficient_information
-        ))
+        return SearchResponse(results=[], query=request.query, mode=request.mode, total=len(results), sources=sources,
+                              answer=NaturalLanguageAnswerResponse(
+                                  summary=generated.summary,
+                                  claims=generated.claims,
+                                  insufficient_information=generated.insufficient_information
+                              ))
 
     def _build_sources(self, results: list[SearchResult]) -> list[CitationSource]:
         return [

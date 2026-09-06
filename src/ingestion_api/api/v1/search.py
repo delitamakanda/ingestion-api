@@ -1,5 +1,5 @@
 from fastapi import Depends, APIRouter
-from sqlalchemy.ext.asyncio import AsyncSession, session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ingestion_api.core.config import settings
 from ingestion_api.core.database import get_db
@@ -60,6 +60,7 @@ router = APIRouter(
 @router.post("", response_model=SearchResponse)
 async def search(
         request: SearchRequest,
-        search_router: SearchRouter = Depends(get_search_router)
+        search_router: SearchRouter = Depends(get_search_router),
+        session: AsyncSession = Depends(get_db),
 ):
-    return await search_router.search(request)
+    return await search_router.search(request, session)

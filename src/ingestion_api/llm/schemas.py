@@ -3,6 +3,8 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
+from ingestion_api.domain.documents.schemas import SourceType
+
 
 class SearchIntent(StrEnum):
     FACTUAL = "factual"
@@ -13,7 +15,7 @@ class SearchIntent(StrEnum):
 
 
 class SearchPlan(BaseModel):
-    int: SearchIntent = Field(..., description="The intent of the search")
+    intent: SearchIntent = Field(..., description="The intent of the search")
 
     queries: list[str] = Field(min_length=1, max_length=10, description="The list of queries to search for")
 
@@ -28,6 +30,8 @@ class SearchPlan(BaseModel):
     start_date: date | None = Field(None, description="The start date of the search")
 
     end_date: date | None = Field(None, description="The end date of the search")
+
+    preferred_sources: list[SourceType] = Field(default_factory=list, description="The list of preferred sources")
 
 
 class AnswerClaim(BaseModel):

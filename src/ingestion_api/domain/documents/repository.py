@@ -1,7 +1,7 @@
 from datetime import date
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, update
 
 from ingestion_api.domain.documents.models import Document, DocumentChunk
 
@@ -16,6 +16,12 @@ class DocumentRepository:
     async def get_by_hash(self, content_hash: str) -> Document | None:
         result = await self.session.execute(
             select(Document).where(Document.content_hash == content_hash)
+        )
+        return result.scalar_one_or_none()
+
+    async def get_by_source_url(self, url: str) -> Document | None:
+        result = await self.session.execute(
+            select(Document).where(Document.source_url == url)
         )
         return result.scalar_one_or_none()
 
@@ -58,3 +64,11 @@ class DocumentRepository:
 
     async def mark_failed(self, document: Document):
         document.status = "failed"
+
+    async def attach_source_url(self, document_id: UUID, url: str):
+        statement = (
+            update(Document)
+            .where(Document.id == document_id)
+            .values(source_url=url)
+        )
+        await self.session.execute(statement)

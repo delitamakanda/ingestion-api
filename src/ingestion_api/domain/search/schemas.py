@@ -16,6 +16,7 @@ class SearchRequest(BaseModel):
         ge=1,
         le=100,
     )
+    regulation_urls: list[str] = Field(default_factory=list, description="The list of regulation URLs to enrich the search")
 
 class RetrievalRequest(BaseModel):
     query: str = Field(..., description="The search query string")
@@ -27,6 +28,7 @@ class RetrievalRequest(BaseModel):
         ge=1,
         le=100,
     )
+    regulation_urls: list[str] = Field(default_factory=list, description="The list of regulation URLs to enrich the search")
 
 class CitationSource(BaseModel):
     source_id: str = Field(..., description="The ID of the source")
@@ -51,7 +53,7 @@ class SearchResult(BaseModel):
     page_end: int | None = Field(..., description="The end page of the chunk")
     text: str = Field(..., description="The text of the document")
     score: float = Field(..., description="The relevance score of the document")
-
+    source_type: str | None = Field(None, description="The type of the source")
 
 
 class NaturalLanguageAnswerResponse(BaseModel):

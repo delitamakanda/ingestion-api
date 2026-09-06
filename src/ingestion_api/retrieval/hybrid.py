@@ -1,6 +1,7 @@
-import asyncio
 from dataclasses import dataclass
-from ingestion_api.domain.search.schemas import SearchResult, RetrievalRequest, CitationSource
+
+from ingestion_api.domain.documents.schemas import SOURCE_WEIGHTS, SourceType
+from ingestion_api.domain.search.schemas import SearchResult, RetrievalRequest
 from ingestion_api.llm.schemas import SearchPlan
 
 
@@ -60,7 +61,7 @@ class HybridRetriever:
 
 
     def _merge_query_results(self, result_sets: list[list[SearchResult]], *, limit: int = 10):
-        scores = {}
+        scores: dict[str, RankedResult] = {}
         for results in result_sets:
             for rank, result in enumerate(results, start=1):
                 score = (1 / (self.rrf_k + rank))
@@ -71,9 +72,20 @@ class HybridRetriever:
                 else:
                     scores[result.chunk_id] = RankedResult(result=result, score=score)
 
+        for item in scores.values():
+            source_weight = self._source_weight(item.result)
+            item.score *= source_weight
+            item.result.score = item.score
+
         ranked = sorted(scores.values(), key=lambda x: x.score, reverse=True)
 
         return [
             item.result for item in ranked[:limit]
         ]
+
+    def _source_weight(self, result: SearchResult) -> float:
+        return SOURCE_WEIGHTS.get(
+            result.source_type,
+            SOURCE_WEIGHTS[SourceType.OTHER]
+        )
 
