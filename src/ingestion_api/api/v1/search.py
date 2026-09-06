@@ -6,11 +6,18 @@ from ingestion_api.core.database import get_db
 from ingestion_api.domain.search.router import SearchRouter
 from ingestion_api.domain.search.schemas import SearchResponse, SearchRequest
 from ingestion_api.domain.search.strategies.keyword import KeywordSearchStrategy
+from ingestion_api.domain.search.strategies.natural_language import NaturalLanguageSearchStrategy
 from ingestion_api.domain.search.strategies.text import TextSearchStrategy
-from ingestion_api.llm.embeddings.base import EmbeddingService
 from ingestion_api.llm.embeddings.sentence_transformer import SentenceTransformerEmbeddingService
+from ingestion_api.retrieval.hybrid import HybridRetriever
 from ingestion_api.retrieval.lexical import LexicalRetriever
 from ingestion_api.retrieval.vector import VectorRetriever
+
+from functools import lru_cache
+
+@lru_cache()
+def get_embedding_service():
+    return SentenceTransformerEmbeddingService(model_name=settings.embedding_model)
 
 
 def get_search_router(
@@ -18,9 +25,16 @@ def get_search_router(
     ):
     retriever = LexicalRetriever(session)
 
+    embedding_service = (get_embedding_service())
+
+    vector = VectorRetriever(session, embedding_service=embedding_service)
+
+    hybrid = HybridRetriever(lexical_retriever=retriever, vector_retriever=vector)
+
     return SearchRouter(
         keyword_strategy=KeywordSearchStrategy(retriever),
         text_strategy=TextSearchStrategy(retriever),
+        natural_language_strategy=NaturalLanguageSearchStrategy(hybrid)
     )
 
 router = APIRouter(
@@ -33,15 +47,3 @@ async def search(
         search_router: SearchRouter = Depends(get_search_router)
 ):
     return await search_router.search(request)
-
-
-
-# todo: remove when hybrid search is implemented
-@router.post("/vector", response_model=SearchResponse)
-async def vector_search(
-        request: SearchRequest,
-        session: AsyncSession = Depends(get_db),
-):
-    embedding_service = SentenceTransformerEmbeddingService(model_name=settings.embedding_model)
-    retrieval = VectorRetriever(session, embedding_service=embedding_service)
-    return await retrieval.search(request)
