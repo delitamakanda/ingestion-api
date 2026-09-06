@@ -17,6 +17,10 @@ class Settings(BaseSettings):
         'intfloat/multilingual-e5-base'
     )
 
+    openai_api_key: str
+
+    llm_model: str = "gpt-3.5-turbo"
+
     embedding_dimensions: int = 768
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")

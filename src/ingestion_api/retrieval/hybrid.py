@@ -1,5 +1,8 @@
+import asyncio
 from dataclasses import dataclass
-from ingestion_api.domain.search.schemas import  SearchResult
+from ingestion_api.domain.search.schemas import SearchResult, RetrievalRequest, CitationSource
+from ingestion_api.llm.schemas import SearchPlan
+
 
 @dataclass
 class RankedResult:
@@ -11,6 +14,22 @@ class HybridRetriever:
         self.lexical_retriever = lexical_retriever
         self.vector_retriever = vector_retriever
         self.rrf_k = rrf_k  # Reciprocal Rank Fusion parameter
+
+    async def search_plan(self, plan: SearchPlan, *, limit: int = 10):
+        requests = [
+            RetrievalRequest(
+                query=query,
+                countries=plan.countries,
+                start_date=plan.start_date,
+                end_date=plan.end_date,
+                limit=limit,
+            ) for query in plan.queries
+        ]
+        result_sets = []
+        for request in requests:
+            results = await self.search(request, limit=limit)
+            result_sets.append(results)
+        return self._merge_query_results(result_sets, limit=limit)
 
     async def search(self, request, limit: int = 10):
         lexical_results = await self.lexical_retriever.keyword_search( request)
@@ -39,4 +58,22 @@ class HybridRetriever:
             else:
                 combined_results[result.chunk_id] = RankedResult(result=result, score=rrf_score)
 
+
+    def _merge_query_results(self, result_sets: list[list[SearchResult]], *, limit: int = 10):
+        scores = {}
+        for results in result_sets:
+            for rank, result in enumerate(results, start=1):
+                score = (1 / (self.rrf_k + rank))
+                existing = scores.get(result.chunk_id)
+
+                if existing:
+                    existing.score += score
+                else:
+                    scores[result.chunk_id] = RankedResult(result=result, score=score)
+
+        ranked = sorted(scores.values(), key=lambda x: x.score, reverse=True)
+
+        return [
+            item.result for item in ranked[:limit]
+        ]
 

@@ -2,6 +2,8 @@ from datetime import date
 from pydantic import BaseModel, Field
 
 from ingestion_api.domain.search.enums import SearchMode
+from ingestion_api.llm.schemas import AnswerClaim
+
 
 class SearchRequest(BaseModel):
     query: str = Field(..., description="The search query string")
@@ -15,6 +17,30 @@ class SearchRequest(BaseModel):
         le=100,
     )
 
+class RetrievalRequest(BaseModel):
+    query: str = Field(..., description="The search query string")
+    countries: list[str] = Field(default_factory=list, description="The list of countries to search in")
+    start_date: date | None = Field(None, description="The start date of the search")
+    end_date: date | None = Field(None, description="The end date of the search")
+    limit: int = Field(
+        default=20,
+        ge=1,
+        le=100,
+    )
+
+class CitationSource(BaseModel):
+    source_id: str = Field(..., description="The ID of the source")
+    document_id: str = Field(..., description="The ID of the document")
+    filename: str = Field(..., description="The filename of the document")
+
+    page_start: int | None = Field(..., description="The start page of the document")
+
+    page_end: int | None = Field(..., description="The end page of the document")
+
+    section: str = Field(..., description="The section of the document")
+
+    excerpt: str = Field(..., description="The excerpt of the document")
+
 class SearchResult(BaseModel):
     document_id: str = Field(..., description="The ID of the document")
     chunk_id: str = Field(..., description="The ID of the chunk")
@@ -26,8 +52,19 @@ class SearchResult(BaseModel):
     text: str = Field(..., description="The text of the document")
     score: float = Field(..., description="The relevance score of the document")
 
+
+
+class NaturalLanguageAnswerResponse(BaseModel):
+    summary: str = Field(..., description="The summary of the answer")
+    claims: list[AnswerClaim] = Field(default_factory=list, description="The list of claims in the answer")
+    insufficient_information: bool = Field(default=False, description="Whether the answer is insufficient information")
+
 class SearchResponse(BaseModel):
     query: str = Field(..., description="The search query string")
     mode: SearchMode = Field(..., description="The mode of the search")
     results: list[SearchResult] = Field(..., description="The list of search results")
     total: int = Field(..., description="The total number of results")
+
+    answer: NaturalLanguageAnswerResponse | None = Field(None, description="The natural language answer")
+
+    sources: list[CitationSource] | None = Field(default_factory=list, description="The list of sources used in the answer")
