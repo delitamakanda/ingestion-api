@@ -32,19 +32,25 @@ class DocumentRepository:
         await self.session.flush()
         return document
 
-    async def replace_chuncks(self, document_id: UUID, chunks: list[ChunkData]):
+    async def replace_chuncks(self, document_id: UUID, chunks: list[ChunkData], embeddings: list[list[float]]):
         await self.session.execute(delete(DocumentChunk).where(DocumentChunk.document_id == document_id))
-        objects = [
-            DocumentChunk(
-                document_id=document_id,
-                chunk_index=chunk.chunk_index,
-                text=chunk.text,
-                sections=chunk.section,
-                page_start=chunk.page_start or 0,
-                page_end=chunk.page_end or 0,
-                metadata_=chunk.metadata,
-            ) for chunk in chunks
-        ]
+
+        objects = []
+
+        for chunk, embedding in zip(chunks, embeddings, strict=True):
+            objects.append(
+                DocumentChunk(
+                    document_id=document_id,
+                    chunk_index=chunk.chunk_index,
+                    text=chunk.text,
+                    sections=chunk.section,
+                    page_start=chunk.page_start or 0,
+                    page_end=chunk.page_end or 0,
+                    metadata_=chunk.metadata,
+                    embedding=embedding
+                )
+            )
+
         self.session.add_all(objects)
 
     async def mark_ready(self, document: Document):

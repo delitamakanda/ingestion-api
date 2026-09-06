@@ -5,6 +5,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ingestion_api.domain.documents.models import Document, DocumentChunk
 from ingestion_api.domain.search.schemas import SearchResult, SearchRequest
+from ingestion_api.retrieval.filters import apply_search_filters
+
 
 class LexicalRetriever:
     def __init__(self, session: AsyncSession):
@@ -27,7 +29,7 @@ class LexicalRetriever:
             )
         )
 
-        statement = self._apply_filters(statement, request)
+        statement = apply_search_filters(statement, request)
         statement = statement.order_by(similar_query.desc())
         statement = statement.limit(request.limit)
         result = await self.session.execute(statement)
@@ -53,7 +55,7 @@ class LexicalRetriever:
             )
         )
 
-        statement = self._apply_filters(statement, request)
+        statement = apply_search_filters(statement, request)
         statement = statement.order_by(score.desc())
         statement = statement.limit(request.limit)
         result = await self.session.execute(statement)
@@ -79,22 +81,13 @@ class LexicalRetriever:
             )
         )
 
-        statement = self._apply_filters(statement, request)
+        statement = apply_search_filters(statement, request)
         statement = statement.order_by(score.desc())
         statement = statement.limit(request.limit)
         result = await self.session.execute(statement)
         return [
             self._to_result(chunk,document, float(score_value)) for chunk, document, score_value in result.all()
         ]
-
-    def _apply_filters(self, statement, request: SearchRequest):
-        if request.countries:
-            statement = statement.where(Document.countries.overlap(request.countries))
-        if request.start_date:
-            statement = statement.where(Document.publication_date >= request.start_date)
-        if request.end_date:
-            statement = statement.where(Document.publication_date <= request.end_date)
-        return statement
 
     def _to_result(self, chunk: DocumentChunk, document: Document, score: float) -> SearchResult:
         return SearchResult(

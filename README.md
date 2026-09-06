@@ -159,4 +159,15 @@ SELECT
     search_vector
 FROM document_chunks
 LIMIT 5
+
+SELECT
+    COUNT(*) AS total,
+    COUNT(embedding) AS embedded
+FROM document_chunks;
+
+SELECT
+    vector_dims(embedding)
+FROM document_chunks
+WHERE embedding IS NOT NULL
+LIMIT 1;
 ```

@@ -13,6 +13,12 @@ class Settings(BaseSettings):
 
     upload_dir: str = "./data/uploads"
 
+    embedding_model: str = (
+        'intfloat/multilingual-e5-base'
+    )
+
+    embedding_dimensions: int = 768
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 

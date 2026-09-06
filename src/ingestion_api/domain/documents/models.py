@@ -59,7 +59,7 @@ class DocumentChunk(Base):
 
     metadata_: Mapped[dict] = mapped_column("metadata", JSONB, default=dict)
 
-    embedding: Mapped[list[float]] = mapped_column(VECTOR(1024), nullable=True)
+    embedding: Mapped[list[float]] = mapped_column(VECTOR(768), nullable=True)
 
     search_vector: Mapped[str] = mapped_column(
         TSVECTOR,
