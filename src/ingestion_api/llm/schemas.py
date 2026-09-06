@@ -39,3 +39,15 @@ class GeneratedAnswer(BaseModel):
     summary: str = Field(..., description="The summary of the answer")
     claims: list[AnswerClaim] = Field(default_factory=list, description="The list of citations in the answer")
     insufficient_information: bool = Field(default=False, description="Whether the answer is insufficient information")
+
+class TemporalEvidence(BaseModel):
+    source_id: str = Field(..., description="The ID of the source")
+    country: str | None = Field(..., description="The country of the evidence")
+    event_date: date | None = Field(..., description="The date of the event")
+    date_type: str | None = Field(..., description="The type of the date")
+    event: str = Field(..., description="The event")
+    legal_reference: str = Field(..., description="The legal reference")
+
+
+class TemporalTimeline(BaseModel):
+    events: list[TemporalEvidence] = Field(default_factory=list, description="The list of temporal events")

@@ -10,6 +10,7 @@ from ingestion_api.domain.search.strategies.natural_language import NaturalLangu
 from ingestion_api.domain.search.strategies.text import TextSearchStrategy
 from ingestion_api.llm.agents.query_planner import QueryPlannerAgent
 from ingestion_api.llm.agents.synthesis import SynthesisAgent
+from ingestion_api.llm.agents.temporal import TemporalAgent
 from ingestion_api.llm.embeddings.sentence_transformer import SentenceTransformerEmbeddingService
 from ingestion_api.llm.providers.openai import OpenAILLMProvider
 from ingestion_api.retrieval.hybrid import HybridRetriever
@@ -44,10 +45,12 @@ def get_search_router(
 
     synthesize_agent = SynthesisAgent(llm_provider)
 
+    temporal_agent = TemporalAgent(llm_provider)
+
     return SearchRouter(
         keyword_strategy=KeywordSearchStrategy(retriever),
         text_strategy=TextSearchStrategy(retriever),
-        natural_language_strategy=NaturalLanguageSearchStrategy(query_planner,hybrid,synthesize_agent)
+        natural_language_strategy=NaturalLanguageSearchStrategy(query_planner,hybrid,synthesize_agent, temporal_agent)
     )
 
 router = APIRouter(

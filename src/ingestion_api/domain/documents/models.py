@@ -39,6 +39,14 @@ class Document(Base):
 
     effective_date: Mapped[date | None] = mapped_column(Date, nullable=True)
 
+    expiration_date: Mapped[date | None] = mapped_column(Date, nullable=True)
+
+    source_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
+
+    authority: Mapped[str | None] = mapped_column(String(100), nullable=True)
+
+    legal_references: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=True, default=list)
+
 class DocumentChunk(Base):
     __tablename__ = "document_chunks"
 

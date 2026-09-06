@@ -1,5 +1,7 @@
 import json
-from ingestion_api.llm.schemas import GeneratedAnswer
+
+from ingestion_api.domain.search.schemas import CitationSource
+from ingestion_api.llm.schemas import GeneratedAnswer, TemporalTimeline
 
 SYSTEM_PROMPT = """
 Your are a regulatory knowledge assistant.
@@ -22,15 +24,39 @@ class SynthesisAgent:
     def __init__(self, llm):
         self.llm = llm
 
-    async def synthesize(self, *, question: str, sources) -> GeneratedAnswer:
+    async def synthesize(self, *, question: str, sources, timeline: TemporalTimeline | None) -> GeneratedAnswer:
         source_payload = [
             source.model_dump() for source in sources
         ]
+
+        timeline_payload = timeline.model_dump() if timeline else None
 
         user_prompt = f"""
         QUESTION: {question}
         
         SOURCES: {json.dumps(source_payload, ensure_ascii=False, indent=2)}
+        
+        TEMPORAL ANALYSIS: {json.dumps(timeline_payload, ensure_ascii=False, indent=2)}
         """
 
         return await self.llm.structured(user_prompt=user_prompt, system_prompt=SYSTEM_PROMPT, schema=GeneratedAnswer)
+
+    def _validate_citations(self, answer: GeneratedAnswer, sources: list[CitationSource]) -> None:
+        allowed = {
+            source.source_id for source in sources
+        }
+
+
+        for claim in answer.claims:
+            invalid = (
+                set(claim.source_ids) - allowed
+            )
+            if invalid:
+                raise ValueError(f"Invalid source ids: {invalid}")
+
+    def _validate_answer(self, answer: GeneratedAnswer) -> None:
+        if answer.insufficient_information:
+            return
+        for claim in answer.claims:
+            if not claim.source_ids:
+                raise ValueError("No source ids found")
