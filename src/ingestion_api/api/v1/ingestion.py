@@ -1,4 +1,5 @@
 import hashlib
+from functools import lru_cache
 from pathlib import Path
 from uuid import uuid4
 from typing import Annotated
@@ -14,6 +15,7 @@ from ingestion_api.domain.ingestion.pipeline import IngestionPipeline
 
 from ingestion_api.core.config import settings
 from ingestion_api.core.database import get_db
+from ingestion_api.llm.embeddings.sentence_transformer import SentenceTransformerEmbeddingService
 
 router = APIRouter(
     prefix="/ingestion",
@@ -31,12 +33,16 @@ SwaggerUploadFile = Annotated[
 
 ALLOWED_EXTENSIONS = {".pdf", ".docx", ".txt"}
 
+@lru_cache()
+def get_embedding_service():
+    return SentenceTransformerEmbeddingService(model_name=settings.embedding_model)
+
 @router.post("/documents")
 async def upload_documents(files: list[SwaggerUploadFile] = File(...), session: AsyncSession = Depends(get_db)):
     upload_dir = Path(settings.upload_dir)
     upload_dir.mkdir(parents=True, exist_ok=True)
 
-    pipeline = IngestionPipeline(session)
+    pipeline = IngestionPipeline(session, embedding_service=get_embedding_service())
 
 
     documents = []
