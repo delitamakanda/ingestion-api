@@ -171,3 +171,8 @@ FROM document_chunks
 WHERE embedding IS NOT NULL
 LIMIT 1;
 ```
+
+```bash
+uv run python scripts/embed_existing_chunks.py
+uv run python scripts/enrich_existing_documents.py
+```
