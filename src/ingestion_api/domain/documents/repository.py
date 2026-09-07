@@ -72,3 +72,18 @@ class DocumentRepository:
             .values(source_url=url)
         )
         await self.session.execute(statement)
+
+    async def update_metadata(self, document: Document, metadata) -> None:
+        document.countries = metadata.countries
+        document.authority = metadata.authority
+        document.legal_references = metadata.legal_references
+        document.language = metadata.language
+        document.source_url = ", ".join(metadata.source_urls) if metadata.source_urls else None
+        document.publication_date = metadata.publication_date if metadata.publication_date else date.today()
+        document.effective_date = metadata.effective_date
+        document.expiration_date = metadata.expiration_date
+        document.metadata_ = {
+            **document.metadata_,
+            'topics': metadata.topics,
+            'metadata_confidence': metadata.confidence.model_dump()
+        }
