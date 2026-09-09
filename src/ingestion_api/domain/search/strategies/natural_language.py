@@ -31,7 +31,7 @@ class NaturalLanguageSearchStrategy(SearchStrategy):
 
         timeline = None
 
-        results = await self.hybrid_retriever.search_plan(plan, limit=request.limit)
+        results = await self.hybrid_retriever.search_plan(plan, session=session, limit=request.limit)
 
         sources = self._build_sources(results)
 

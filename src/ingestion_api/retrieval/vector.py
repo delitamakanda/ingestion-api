@@ -14,7 +14,7 @@ class VectorRetriever:
         self.session = session
         self.embedding_service = embedding_service
 
-    async def search(self, request: SearchRequest, limit: int = 30) -> list[SearchResult]:
+    async def search(self, request: SearchRequest, session: AsyncSession, limit: int = 30) -> list[SearchResult]:
         query_embedding = self.embedding_service.embed_query(request.query)
 
         distance = (
@@ -40,7 +40,7 @@ class VectorRetriever:
             statement.order_by(distance.asc()).limit(limit)
         )
 
-        rows = (await self.session.execute(statement)).all()
+        rows = (await session.execute(statement)).all()
 
         return [
             SearchResult(

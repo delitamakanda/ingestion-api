@@ -4,6 +4,10 @@ from ingestion_api.domain.documents.schemas import SOURCE_WEIGHTS, SourceType
 from ingestion_api.domain.search.schemas import SearchResult, RetrievalRequest
 from ingestion_api.llm.schemas import SearchPlan
 
+from sqlalchemy.ext.asyncio import AsyncSession
+
+def get_session(session: AsyncSession):
+    return session
 
 @dataclass
 class RankedResult:
@@ -16,7 +20,7 @@ class HybridRetriever:
         self.vector_retriever = vector_retriever
         self.rrf_k = rrf_k  # Reciprocal Rank Fusion parameter
 
-    async def search_plan(self, plan: SearchPlan, *, limit: int = 10):
+    async def search_plan(self, plan: SearchPlan, session: get_session(AsyncSession), *, limit: int = 10):
         requests = [
             RetrievalRequest(
                 query=query,
@@ -28,13 +32,13 @@ class HybridRetriever:
         ]
         result_sets = []
         for request in requests:
-            results = await self.search(request, limit=limit)
+            results = await self.search(request=request, session=session, limit=limit)
             result_sets.append(results)
         return self._merge_query_results(result_sets, limit=limit)
 
-    async def search(self, request, limit: int = 10):
-        lexical_results = await self.lexical_retriever.keyword_search( request)
-        vector_results = await self.vector_retriever.search(request, limit=30)
+    async def search(self, request, session: AsyncSession, limit: int = 10):
+        lexical_results = await self.lexical_retriever.keyword_search( request, session)
+        vector_results = await self.vector_retriever.search(request, session=session, limit=30)
 
         combined_results: dict[str, RankedResult] = {}
 

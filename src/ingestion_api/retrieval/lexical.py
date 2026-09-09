@@ -1,5 +1,3 @@
-from urllib import request
-
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,7 +10,7 @@ class LexicalRetriever:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def fuzzy_text_search(self, request: SearchRequest) -> list[SearchResult]:
+    async def fuzzy_text_search(self, request: SearchRequest, session: AsyncSession) -> list[SearchResult]:
         similar_query = func.similarity(
             DocumentChunk.text, request.query)
 
@@ -32,12 +30,12 @@ class LexicalRetriever:
         statement = apply_search_filters(statement, request)
         statement = statement.order_by(similar_query.desc())
         statement = statement.limit(request.limit)
-        result = await self.session.execute(statement)
+        result = await session.execute(statement)
         return [
             self._to_result(chunk,document, float(score_value)) for chunk, document, score_value in result.all()
         ]
 
-    async def keyword_search(self, request: SearchRequest) -> list[SearchResult]:
+    async def keyword_search(self, request: SearchRequest, session: AsyncSession) -> list[SearchResult]:
         ts_query = func.websearch_to_tsquery("simple", request.query)
         score = func.ts_rank_cd(
             DocumentChunk.search_vector, ts_query
@@ -58,12 +56,12 @@ class LexicalRetriever:
         statement = apply_search_filters(statement, request)
         statement = statement.order_by(score.desc())
         statement = statement.limit(request.limit)
-        result = await self.session.execute(statement)
+        result = await session.execute(statement)
         return [
             self._to_result(chunk,document, float(score_value)) for chunk, document, score_value in result.all()
         ]
 
-    async def text_search(self, request: SearchRequest) -> list[SearchResult]:
+    async def text_search(self, request: SearchRequest, session: AsyncSession) -> list[SearchResult]:
         ts_query = func.phraseto_tsquery("simple", request.query)
         score = func.ts_rank_cd(
             DocumentChunk.search_vector, ts_query
@@ -84,7 +82,7 @@ class LexicalRetriever:
         statement = apply_search_filters(statement, request)
         statement = statement.order_by(score.desc())
         statement = statement.limit(request.limit)
-        result = await self.session.execute(statement)
+        result = await session.execute(statement)
         return [
             self._to_result(chunk,document, float(score_value)) for chunk, document, score_value in result.all()
         ]
