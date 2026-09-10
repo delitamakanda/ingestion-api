@@ -1,0 +1,26 @@
+[
+  {
+    "id": "53ac21c1-4fdb-45a2-be2a-618f5a0ae904",
+    "query": "Résumé du texte Page Blanche",
+    "mode": "natural_language",
+    "expected": {
+      "document_ids": [],
+      "chunks_ids": [],
+      "terms": [
+        "sakura"
+      ]
+    }
+  },
+    {
+        "id": "08f15579-f835-4502-bd5a-0184cf29b229",
+        "query": "vue",
+        "mode": "keyword",
+        "expected": {
+        "document_ids": [],
+        "chunks_ids": [],
+        "terms": [
+          "vue"
+        ]
+        }
+    }
+]
