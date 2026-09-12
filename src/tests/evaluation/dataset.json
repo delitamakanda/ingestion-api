@@ -1,13 +1,16 @@
 [
   {
     "id": "53ac21c1-4fdb-45a2-be2a-618f5a0ae904",
-    "query": "Résumé du texte Page Blanche",
+    "query": "synopsis de Page Blanche",
     "mode": "natural_language",
     "expected": {
-      "document_ids": [],
+      "document_ids": [
+        "53ac21c1-4fdb-45a2-be2a-618f5a0ae904",
+        "f533308b-f0c6-4e77-9757-57f36c79c13f"
+      ],
       "chunks_ids": [],
       "terms": [
-        "sakura"
+        "perdu"
       ]
     }
   },
@@ -16,8 +19,14 @@
         "query": "vue",
         "mode": "keyword",
         "expected": {
-        "document_ids": [],
-        "chunks_ids": [],
+        "document_ids": [
+          "08f15579-f835-4502-bd5a-0184cf29b229"
+        ],
+        "chunks_ids": [
+          "8df60ec5-b085-4e9a-aad3-26db3bb8ca09",
+          "af0c7ac7-9016-4f39-aae5-bb6a6d47fc16",
+          "ce3700e1-7091-43b8-b142-2c4fcd02bcdd"
+        ],
         "terms": [
           "vue"
         ]
