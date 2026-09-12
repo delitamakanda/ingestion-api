@@ -1,0 +1,39 @@
+from sentence_transformers import CrossEncoder
+
+from ingestion_api.domain.search.schemas import SearchResult
+
+from ingestion_api.retrieval.reranker import Reranker
+
+class CrossEncoderReranker(Reranker):
+    def __init__(self, model_name: str):
+        self.model = CrossEncoder(model_name)
+
+    def rerank(self, *, query: str, results: list[SearchResult], top_k: int) -> list[SearchResult]:
+        if not results:
+            return []
+
+        pairs = [(query, self._build_passages(result)) for result in results]
+
+        scores = self.model.predict(pairs)
+        ranked = sorted(zip(results, scores), key=lambda x: float(x[1]), reverse=True)
+
+        output = []
+        for result, score in ranked[:top_k]:
+            output.append(
+                result.model_copy(update={"reranker_score": float(score)})
+            )
+        return output
+
+
+    @staticmethod
+    def _build_passages(result: SearchResult) -> str:
+        parts = []
+
+        if result.filename:
+            parts.append(f"Document: {result.filename}")
+        if result.sections:
+            parts.append(f"{result.sections}")
+        parts.append(
+            result.text
+        )
+        return "\n\n".join(parts)

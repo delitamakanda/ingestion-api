@@ -13,6 +13,7 @@ from ingestion_api.llm.agents.synthesis import SynthesisAgent
 from ingestion_api.llm.agents.temporal import TemporalAgent
 from ingestion_api.llm.embeddings.sentence_transformer import SentenceTransformerEmbeddingService
 from ingestion_api.llm.providers.openai import OpenAILLMProvider
+from ingestion_api.retrieval.cross_encoder_reranker import CrossEncoderReranker
 from ingestion_api.retrieval.hybrid import HybridRetriever
 from ingestion_api.retrieval.lexical import LexicalRetriever
 from ingestion_api.retrieval.vector import VectorRetriever
@@ -37,7 +38,7 @@ def get_search_router(
 
     vector = VectorRetriever(session, embedding_service=embedding_service)
 
-    hybrid = HybridRetriever(lexical_retriever=retriever, vector_retriever=vector)
+    hybrid = HybridRetriever(lexical_retriever=retriever, vector_retriever=vector, reranker=CrossEncoderReranker(settings.reranker_model))
 
     llm_provider = get_llm_provider()
 

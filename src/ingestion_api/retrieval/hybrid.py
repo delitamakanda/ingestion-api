@@ -5,6 +5,7 @@ from ingestion_api.domain.search.schemas import SearchResult, RetrievalRequest
 from ingestion_api.llm.schemas import SearchPlan
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from ingestion_api.retrieval.cross_encoder_reranker import CrossEncoderReranker
 
 def get_session(session: AsyncSession):
     return session
@@ -15,28 +16,34 @@ class RankedResult:
     score: float
 
 class HybridRetriever:
-    def __init__(self, lexical_retriever, vector_retriever, rrf_k: int = 50):
+    def __init__(self, lexical_retriever, vector_retriever, rrf_k: int = 50, reranker: CrossEncoderReranker | None = None):
         self.lexical_retriever = lexical_retriever
         self.vector_retriever = vector_retriever
         self.rrf_k = rrf_k  # Reciprocal Rank Fusion parameter
+        self.reranker = reranker
 
-    async def search_plan(self, plan: SearchPlan, session: get_session(AsyncSession), *, limit: int = 10):
+    async def search_plan(self, plan: SearchPlan, session: AsyncSession, *, limit: int = 10):
         requests = [
             RetrievalRequest(
                 query=query,
                 countries=plan.countries,
                 start_date=plan.start_date,
                 end_date=plan.end_date,
-                limit=limit,
+                limit=30,
             ) for query in plan.queries
         ]
         result_sets = []
         for request in requests:
-            results = await self.search(request=request, session=session, limit=limit)
+            results = await self.search(request=request, session=session, limit=30)
             result_sets.append(results)
-        return self._merge_query_results(result_sets, limit=limit)
 
-    async def search(self, request, session: AsyncSession, limit: int = 10):
+        candidates = self._merge_query_results(result_sets, limit=10)
+
+        if self.reranker:
+            return self.reranker.rerank(query=" ".join(plan.queries), results=candidates, top_k=limit)
+        return candidates[:limit]
+
+    async def search(self, request: RetrievalRequest, session: AsyncSession, limit: int = 10):
         lexical_results = await self.lexical_retriever.keyword_search( request, session)
         vector_results = await self.vector_retriever.search(request, session=session, limit=30)
 

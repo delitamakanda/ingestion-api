@@ -54,6 +54,7 @@ class SearchResult(BaseModel):
     text: str = Field(..., description="The text of the document")
     score: float = Field(..., description="The relevance score of the document")
     source_type: str | None = Field(None, description="The type of the source")
+    reranker_score: float | None = Field(None, description="The reranking score of the document")
 
 
 class NaturalLanguageAnswerResponse(BaseModel):

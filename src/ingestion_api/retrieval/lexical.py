@@ -11,28 +11,27 @@ class LexicalRetriever:
         self.session = session
 
     async def fuzzy_text_search(self, request: SearchRequest, session: AsyncSession) -> list[SearchResult]:
-        similar_query = func.similarity(
+        trigram_similar_query = func.similarity(
             DocumentChunk.text, request.query)
-
         statement = (
             select(
                 DocumentChunk,
                 Document,
-                similar_query.label("score")
+                trigram_similar_query.label("score")
             ).join(
                 Document,
                 Document.id == DocumentChunk.document_id
             ).where(
-                similar_query > 0.15
+            trigram_similar_query is not None
             )
         )
 
         statement = apply_search_filters(statement, request)
-        statement = statement.order_by(similar_query.desc())
+        statement = statement.order_by(trigram_similar_query.desc())
         statement = statement.limit(request.limit)
         result = await session.execute(statement)
         return [
-            self._to_result(chunk,document, float(score_value)) for chunk, document, score_value in result.all()
+            self._to_result(chunk, document, float(score_value)) for chunk, document, score_value in result.all()
         ]
 
     async def keyword_search(self, request: SearchRequest, session: AsyncSession) -> list[SearchResult]:
@@ -57,8 +56,9 @@ class LexicalRetriever:
         statement = statement.order_by(score.desc())
         statement = statement.limit(request.limit)
         result = await session.execute(statement)
+        # print("Keyword search results:", result.all())
         return [
-            self._to_result(chunk,document, float(score_value)) for chunk, document, score_value in result.all()
+            self._to_result(chunk, document, float(score_value)) for chunk, document, score_value in result.all()
         ]
 
     async def text_search(self, request: SearchRequest, session: AsyncSession) -> list[SearchResult]:
@@ -83,8 +83,9 @@ class LexicalRetriever:
         statement = statement.order_by(score.desc())
         statement = statement.limit(request.limit)
         result = await session.execute(statement)
+        # print("Text search results:", result.all())
         return [
-            self._to_result(chunk,document, float(score_value)) for chunk, document, score_value in result.all()
+            self._to_result(chunk, document, float(score_value)) for chunk, document, score_value in result.all()
         ]
 
     def _to_result(self, chunk: DocumentChunk, document: Document, score: float) -> SearchResult:

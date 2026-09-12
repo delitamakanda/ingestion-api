@@ -23,6 +23,12 @@ class Settings(BaseSettings):
 
     embedding_dimensions: int = 768
 
+    reranker_model: str
+
+    reranker_candidates: int = 10
+
+    reranker_top_k: int = 5
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 

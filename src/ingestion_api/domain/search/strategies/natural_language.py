@@ -32,7 +32,6 @@ class NaturalLanguageSearchStrategy(SearchStrategy):
         timeline = None
 
         results = await self.hybrid_retriever.search_plan(plan, session=session, limit=request.limit)
-
         sources = self._build_sources(results)
 
         if plan.requires_temporal_analysis:
@@ -46,12 +45,12 @@ class NaturalLanguageSearchStrategy(SearchStrategy):
                 timeline=timeline
             )
         )
-        return SearchResponse(results=[], query=request.query, mode=request.mode, total=len(results), sources=sources,
+        return SearchResponse(query=request.query, mode=request.mode, total=len(results), sources=sources,
                               answer=NaturalLanguageAnswerResponse(
                                   summary=generated.summary,
                                   claims=generated.claims,
                                   insufficient_information=generated.insufficient_information
-                              ))
+                              ), results=results)
 
     def _build_sources(self, results: list[SearchResult]) -> list[CitationSource]:
         return [
