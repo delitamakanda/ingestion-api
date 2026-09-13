@@ -50,7 +50,8 @@ class NaturalLanguageSearchStrategy(SearchStrategy):
                                   summary=generated.summary,
                                   claims=generated.claims,
                                   insufficient_information=generated.insufficient_information
-                              ), results=results)
+                              ), results=[])
+
 
     def _build_sources(self, results: list[SearchResult]) -> list[CitationSource]:
         return [
