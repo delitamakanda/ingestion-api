@@ -4,18 +4,18 @@ from pathlib import Path
 from uuid import uuid4
 from typing import Annotated
 
-from fastapi import APIRouter, File, UploadFile as FastAPIUploadFile, HTTPException, Depends
+from fastapi import APIRouter, File, UploadFile as FastAPIUploadFile, Depends
 from pydantic import WithJsonSchema
-
-from ingestion_api.core.config import settings
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ingestion_api.domain.ingestion.pipeline import IngestionPipeline
-
 from ingestion_api.core.config import settings
 from ingestion_api.core.database import get_db
+from ingestion_api.domain.jobs.repository import JobRepository
 from ingestion_api.llm.embeddings.sentence_transformer import SentenceTransformerEmbeddingService
+from ingestion_api.workers.broker import ArqJobBroker
+
+broker = ArqJobBroker()
 
 router = APIRouter(
     prefix="/ingestion",
@@ -42,17 +42,15 @@ async def upload_documents(files: list[SwaggerUploadFile] = File(...), session: 
     upload_dir = Path(settings.upload_dir)
     upload_dir.mkdir(parents=True, exist_ok=True)
 
-    pipeline = IngestionPipeline(session, embedding_service=get_embedding_service())
+    job_repository = JobRepository(session)
 
+    jobs = []
 
-    documents = []
-
-    for f in files:
-        original_filename = f.filename or ""
+    for file in files:
+        original_filename = (file.filename or "")
         extension = Path(original_filename).suffix.lower()
-
         if extension not in ALLOWED_EXTENSIONS:
-            documents.append({
+            jobs.append({
                 "original_filename": original_filename,
                 "stored_filename": None,
                 "content_hash": None,
@@ -61,49 +59,28 @@ async def upload_documents(files: list[SwaggerUploadFile] = File(...), session: 
                 "error": f"File type {extension} is not allowed"
             })
             continue
-
-        content = await f.read()
+        content = await file.read()
 
         content_hash = hashlib.sha256(content).hexdigest()
 
-        stored_filename = (
-            f"{uuid4()}{extension}"
-        )
+        stored_filename = f"{uuid4()}{extension}"
 
         path = upload_dir / stored_filename
-
         path.write_bytes(content)
 
+        job = await job_repository.create_job(original_filename=original_filename, stored_filename=stored_filename, content_hash=content_hash)
 
-        try:
-            document = await pipeline.ingest(
-                file_path=path,
-                content_hash=content_hash,
-                original_filename=original_filename
-            )
-            await session.commit()
-            documents.append({
-                "original_filename": original_filename,
-                "stored_filename": stored_filename,
-                "content_hash": content_hash,
-                "size": len(content),
-                "status": document.status
-            })
+        jobs.append({
+            "job_id": str(job.id),
+            "original_filename": original_filename,
+            "status": job.status,
+        })
 
-        except Exception as exc:
-            await session.rollback()
-            documents.append({
-                "original_filename": original_filename,
-                "stored_filename": stored_filename,
-                "content_hash": content_hash,
-                "size": len(content),
-                "status": "failed",
-                "error": str(exc)
-            })
+        await session.commit()
+
+        await broker.enqueue_ingestion(job.id)
 
     return {
-        "count": len(documents),
-        "documents": documents
+        "count": len(jobs),
+        "jobs": jobs
     }
-
-

@@ -172,7 +172,16 @@ WHERE embedding IS NOT NULL
 LIMIT 1;
 ```
 
+
+## Enrich existing documents
+
 ```bash
 uv run python scripts/embed_existing_chunks.py
 uv run python scripts/enrich_existing_documents.py
+```
+
+## workers
+
+```bash
+uv run arq ingestion_api.workers.settings.WorkerSettings
 ```

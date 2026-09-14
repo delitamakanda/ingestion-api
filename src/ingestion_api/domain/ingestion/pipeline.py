@@ -13,6 +13,9 @@ from ingestion_api.domain.ingestion.parsers.registry import ParserRegistry
 from ingestion_api.domain.ingestion.schemas import ChunkData
 from ingestion_api.llm.embeddings.base import EmbeddingService
 from ingestion_api.llm.providers.openai import OpenAILLMProvider
+from collections.abc import Awaitable, Callable
+
+ProgressCallback = Callable[[str, int], Awaitable[None]]
 
 
 class IngestionPipeline:
@@ -25,7 +28,7 @@ class IngestionPipeline:
         self.chunker = SemanticChunker()
         self.metadata_extractor = MetadataExtractor(DeterminisiticMetadataExtractor(), LLMMetadataExtractor(OpenAILLMProvider(api_key=settings.openai_api_key, model=settings.llm_model)), MetadataNormalizer())
 
-    async def ingest(self, *, file_path: Path, content_hash: str, original_filename: str):
+    async def ingest(self, *, file_path: Path, content_hash: str, original_filename: str, on_progress: ProgressCallback | None = None):
         existing_document = await self.document_repository.get_by_hash(content_hash)
 
         if existing_document:
@@ -33,7 +36,11 @@ class IngestionPipeline:
 
         parser = self.parser_registry.get(file_path)
 
+        await self._progress(on_progress, "parsing", 10)
+
         parsed_document = await parser.parse(file_path)
+
+        await self._progress(on_progress, "enriching", 30)
 
         try:
 
@@ -49,13 +56,19 @@ class IngestionPipeline:
 
             metadata = await self.metadata_extractor.extract_metadata(parsed_document)
 
+            await self._progress(on_progress, "chunking", 50)
+
             chunks = self.chunker.chunk(parsed_document)
+
+            await self._progress(on_progress, "embedding", 65)
 
             embeddings = (
                 self.embedding_service.embed_documents([
                     self._prepare_chunk_text(chunk, metadata) for chunk in chunks
                 ])
             )
+
+            await self._progress(on_progress, "indexing", 90)
 
             await self.document_repository.update_metadata(document, metadata)
 
@@ -91,3 +104,7 @@ class IngestionPipeline:
 
         parts.append(chunk.text)
         return "\n\n".join(parts)
+
+    async def _progress(self, callback: ProgressCallback | None, step: str, progress: int):
+        if callback is not None:
+            await callback(step, progress)

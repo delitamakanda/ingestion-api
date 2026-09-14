@@ -29,6 +29,8 @@ class Settings(BaseSettings):
 
     reranker_top_k: int = 5
 
+    redis_url: str
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 
