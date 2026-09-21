@@ -1,3 +1,4 @@
+import time
 from dataclasses import dataclass
 
 from ingestion_api.domain.documents.schemas import SOURCE_WEIGHTS, SourceType
@@ -6,6 +7,9 @@ from ingestion_api.llm.schemas import SearchPlan
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from ingestion_api.retrieval.cross_encoder_reranker import CrossEncoderReranker
+from ingestion_api.core.logging import get_logger
+
+logger = get_logger(__name__)
 
 def get_session(session: AsyncSession):
     return session
@@ -44,6 +48,8 @@ class HybridRetriever:
         return candidates[:limit]
 
     async def search(self, request: RetrievalRequest, session: AsyncSession, limit: int = 10):
+        logger.info("hybrid_retriever.search.started", query=request.query, limit=limit)
+        start_time = time.perf_counter()
         lexical_results = await self.lexical_retriever.keyword_search( request, session)
         vector_results = await self.vector_retriever.search(request, session=session, limit=30)
 
@@ -58,6 +64,7 @@ class HybridRetriever:
         for item in ranked[:limit]:
             item.result.score = item.score
             results.append(item.result)
+        logger.info("hybrid_retriever.search.completed", query=request.query, limit=limit, elapsed=(time.perf_counter() - start_time) * 1000)
         return results
 
 

@@ -1,9 +1,11 @@
-from typing import Any
+import time
+import structlog
 from uuid import UUID
 from pathlib import Path
 
 from ingestion_api.core.config import settings
 from ingestion_api.domain.documents.models import Document
+from ingestion_api.core.logging import get_logger
 from ingestion_api.domain.ingestion.pipeline import IngestionPipeline
 from ingestion_api.domain.jobs.enums import ProcessingStep
 from ingestion_api.domain.jobs.models import JobType
@@ -12,7 +14,10 @@ from ingestion_api.llm.embeddings.sentence_transformer import SentenceTransforme
 from ingestion_api.domain.ingestion.exceptions import PermanentIngestionError, RetryableIngestionError
 from ingestion_api.core.database import AsyncSessionFactory
 
+logger = get_logger(__name__)
+
 async def update_progress(*, job_id: UUID, step: str, progress: int):
+    logger.info("ingestion.job.progress", job_id=job_id, step=step, progress=progress)
     async with AsyncSessionFactory() as session:
         jobs = JobRepository(session)
         job = await jobs.get_job_by_id(job_id)
@@ -25,6 +30,8 @@ async def update_progress(*, job_id: UUID, step: str, progress: int):
 
 
 async def process_ingestion_job(*, job_id: UUID, session):
+    structlog.contextvars.clear_contextvars()
+    structlog.contextvars.bind_contextvars(job_id=str(job_id))
     jobs = JobRepository(session)
     job = await jobs.get_job_by_id(job_id)
     if job is None:
@@ -54,6 +61,8 @@ async def process_ingestion_job(*, job_id: UUID, session):
         )
 
     try:
+        logger.info("ingestion.job.started", filename=job.original_filename, attempt=job.attempts + 1)
+        start_time = time.perf_counter()
         document: Document = None
         if job.job_type == JobType.INGESTION:
             document = await pipeline.ingest(
@@ -70,6 +79,8 @@ async def process_ingestion_job(*, job_id: UUID, session):
         await jobs.attach_document(job, document_id=document.id)
         await jobs.mark_completed(job)
         await session.commit()
+        end_time = time.perf_counter() - start_time * 1000
+        logger.info("ingestion.job.completed", document_id=document.id, duration=round(end_time, 2))
     except PermanentIngestionError as e:
         await session.rollback()
         job = await jobs.get_job_by_id(job_id)
@@ -85,5 +96,8 @@ async def process_ingestion_job(*, job_id: UUID, session):
         if job:
             await jobs.mark_failed(job, error_code="INGESTION_ERROR", error_message=str(e))
             await session.commit()
+            logger.exception("ingestion.job.failed", job_id=job.id, error_message=str(e))
         raise
+    finally:
+        structlog.contextvars.clear_contextvars()
 

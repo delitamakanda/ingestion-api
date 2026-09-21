@@ -14,6 +14,9 @@ from ingestion_api.core.database import get_db
 from ingestion_api.domain.jobs.repository import JobRepository
 from ingestion_api.llm.embeddings.sentence_transformer import SentenceTransformerEmbeddingService
 from ingestion_api.workers.broker import ArqJobBroker
+from ingestion_api.core.logging import get_logger
+
+logger = get_logger(__name__)
 
 broker = ArqJobBroker()
 
@@ -79,6 +82,8 @@ async def upload_documents(files: list[SwaggerUploadFile] = File(...), session: 
         path.write_bytes(content)
 
         job = await job_repository.create_job(original_filename=original_filename, stored_filename=stored_filename, content_hash=content_hash)
+
+        logger.info("ingestion.job.created", job_id=str(job.id), original_filename=original_filename, content_hash=content_hash)
 
         jobs.append({
             "job_id": str(job.id),
