@@ -63,6 +63,16 @@ async def upload_documents(files: list[SwaggerUploadFile] = File(...), session: 
 
         content_hash = hashlib.sha256(content).hexdigest()
 
+        existing_job = await job_repository.find_by_content_hash(content_hash)
+        if existing_job:
+            jobs.append({
+                "job_id": str(existing_job.id),
+                "original_filename": original_filename,
+                "status": existing_job.status,
+                "duplicate": True,
+            })
+            continue
+
         stored_filename = f"{uuid4()}{extension}"
 
         path = upload_dir / stored_filename

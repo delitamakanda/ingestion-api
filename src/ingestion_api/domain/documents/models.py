@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime, date
 
 from pgvector.sqlalchemy import VECTOR
-from sqlalchemy import ForeignKey, Text, text
+from sqlalchemy import ForeignKey, Text
 from sqlalchemy import Integer, String, DateTime, Date, func, Computed
 from sqlalchemy.dialects.postgresql import JSONB, UUID, TSVECTOR, ARRAY
 from sqlalchemy.orm import Mapped, mapped_column
@@ -16,6 +16,7 @@ class Document(Base):
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
 
     file_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    stored_filename: Mapped[str] = mapped_column(String(255), nullable=True)
     title: Mapped[str] = mapped_column(String(1000), nullable=False)
     content_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
 
@@ -48,6 +49,16 @@ class Document(Base):
     authority: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
     legal_references: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=True, default=list)
+
+    processing_version: Mapped[str] = mapped_column(String(100), nullable=True, default="1.0.0")
+
+    parser_version: Mapped[str] = mapped_column(String(100), nullable=True, default="1.0.0")
+
+    chunking_version: Mapped[str] = mapped_column(String(100), nullable=True, default="1.0.0")
+
+    metadata_version: Mapped[str] = mapped_column(String(100), nullable=True, default="1.0.0")
+
+    embedding_model: Mapped[str] = mapped_column(String(100), nullable=True, default="intfloat/multilingual-e5-base")
 
 class DocumentChunk(Base):
     __tablename__ = "document_chunks"

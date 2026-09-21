@@ -1,4 +1,4 @@
-from ingestion_api.domain.jobs.models import IngestionJob
+from ingestion_api.domain.jobs.models import IngestionJob, JobType
 from datetime import datetime, UTC
 from uuid import UUID
 
@@ -12,12 +12,13 @@ class JobRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def create_job(self, *, original_filename: str, stored_filename: str, content_hash: str) -> IngestionJob:
+    async def create_job(self, *, original_filename: str, stored_filename: str, content_hash: str, job_type: JobType = JobType.INGESTION) -> IngestionJob:
         job = IngestionJob(
             original_filename=original_filename,
             stored_filename=stored_filename,
             content_hash=content_hash,
             status=JobStatus.PENDING,
+            job_type=job_type,
             progress=0,
         )
         self.session.add(job)
@@ -29,10 +30,29 @@ class JobRepository:
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
 
+    async def find_by_content_hash(self, content_hash: str) -> IngestionJob | None:
+        active_statuses = [
+            JobStatus.PENDING,
+            JobStatus.PARSING,
+            JobStatus.ENRICHING,
+            JobStatus.EMBEDDING,
+            JobStatus.CHUNKING,
+            JobStatus.INDEXING
+        ]
+        stmt = select(IngestionJob).where(IngestionJob.content_hash == content_hash, IngestionJob.status.in_(
+            [status.value for status in active_statuses]
+        )).order_by(IngestionJob.started_at.desc()).limit(1)
+        result = await self.session.execute(stmt)
+        return result.scalar_one_or_none()
+
+
     async def mark_started(self, job: IngestionJob) -> None:
 
         job.started_at = datetime.now(UTC)
         job.attempts += 1
+        job.error_code = None
+        job.error_message = None
+        job.finished_at = None
         await self.session.flush()
 
     async def update_job_status(self, job: IngestionJob, *, step: ProcessingStep, progress: int):
@@ -59,3 +79,26 @@ class JobRepository:
         job.error_message = error_message
         job.finished_at = datetime.now(UTC)
         await self.session.flush()
+
+    async def find_stale_jobs(self, *, before: datetime) -> list[IngestionJob]:
+        active = [
+            JobStatus.PARSING.value,
+            JobStatus.ENRICHING.value,
+            JobStatus.EMBEDDING.value,
+            JobStatus.CHUNKING.value,
+            JobStatus.INDEXING.value
+        ]
+        stmt = select(IngestionJob).where(
+            IngestionJob.status.in_(active),
+            IngestionJob.updated_at < before
+        )
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())
+
+    async def list_jobs(self, status: JobStatus | None = None) -> list[IngestionJob]:
+        stmt = select(IngestionJob)
+        if status is not None:
+            stmt = stmt.where(IngestionJob.status == status)
+        stmt = stmt.order_by(IngestionJob.created_at.asc())
+        result = await self.session.execute(stmt)
+        return list(result.scalars().all())

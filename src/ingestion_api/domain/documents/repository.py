@@ -1,4 +1,5 @@
 from datetime import date
+from typing import Optional
 from uuid import UUID
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import delete, select, update
@@ -25,9 +26,10 @@ class DocumentRepository:
         )
         return result.scalar_one_or_none()
 
-    async def create_document(self, *, filename: str, content_hash: str, title: str, document_type: str = "text", publication_date: str = "2023-01-01") -> Document:
+    async def create_document(self, *, filename: str, content_hash: str, title: str, document_type: str = "text", publication_date: str = "2023-01-01", stored_filename: str) -> Document:
         document = Document(
             file_name=filename,
+            stored_filename=stored_filename,
             content_hash=content_hash,
             title=title,
             document_type=document_type,
@@ -87,3 +89,18 @@ class DocumentRepository:
             'topics': metadata.topics,
             'metadata_confidence': metadata.confidence.model_dump()
         }
+
+    async def update_processing_version(self, document: Document, *, processing_version: str, parser_version: str, chunking_version: str, metadata_version: str, embedding_model: str) -> None:
+        document.processing_version = processing_version
+        document.parser_version = parser_version
+        document.chunking_version = chunking_version
+        document.metadata_version = metadata_version
+        document.embedding_model = embedding_model
+
+        await self.session.flush()
+
+    async def get_by_id(self, document_id: UUID) -> Optional[Document]:
+        result = await self.session.execute(
+            select(Document).where(Document.id == document_id)
+        )
+        return result.scalar_one_or_none()

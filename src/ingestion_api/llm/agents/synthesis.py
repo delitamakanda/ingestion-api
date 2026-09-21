@@ -26,10 +26,10 @@ class SynthesisAgent:
 
     async def synthesize(self, *, question: str, sources, timeline: TemporalTimeline | None) -> GeneratedAnswer:
         source_payload = [
-            source.model_dump() for source in sources
+            source.model_dump(mode="json") for source in sources
         ]
 
-        timeline_payload = timeline.model_dump() if timeline else None
+        timeline_payload = timeline.model_dump(mode="json") if timeline else None
 
         user_prompt = f"""
         QUESTION: {question}

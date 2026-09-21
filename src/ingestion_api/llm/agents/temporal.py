@@ -29,7 +29,7 @@ class TemporalAgent:
 
     async def analyze(self, *, question: str, sources) -> TemporalTimeline:
         source_payload = [
-            source.model_dump() for source in sources
+            source.model_dump(mode="json") for source in sources
         ]
 
         user_prompt = f"""

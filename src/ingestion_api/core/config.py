@@ -13,6 +13,14 @@ class Settings(BaseSettings):
 
     upload_dir: str = "./data/uploads"
 
+    processing_version: str = "1.0.0"
+
+    parser_version: str = "1.0.0"
+
+    chunking_version: str = "1.0.0"
+
+    metadata_version: str = "1.0.0"
+
     embedding_model: str = (
         'intfloat/multilingual-e5-base'
     )
@@ -30,6 +38,8 @@ class Settings(BaseSettings):
     reranker_top_k: int = 5
 
     redis_url: str
+
+    ingestion_max_attempts: int = 3
 
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 

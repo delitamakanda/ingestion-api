@@ -3,6 +3,7 @@ from pathlib import Path
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ingestion_api.core.config import settings
+from ingestion_api.domain.documents.models import Document
 from ingestion_api.domain.documents.repository import DocumentRepository
 from ingestion_api.domain.ingestion.chunking.semantic import SemanticChunker
 from ingestion_api.domain.ingestion.enrichment.deterministic import DeterminisiticMetadataExtractor
@@ -47,6 +48,7 @@ class IngestionPipeline:
             document = (
                 await self.document_repository.create_document(
                     filename=original_filename,
+                    stored_filename=file_path.name,
                     content_hash=content_hash,
                     title=parsed_document.title,
                     document_type=file_path.suffix.lower().lstrip("."),
@@ -82,8 +84,16 @@ class IngestionPipeline:
                     "effective_date": metadata.effective_date.isoformat() if metadata.effective_date else None,
                 })
 
-            await self.document_repository.replace_chuncks(document.id, chunks, embeddings)
-            await self.document_repository.mark_ready(document)
+            await self.document_repository.replace_chuncks(document_id=document.id, chunks=chunks, embeddings=embeddings)
+            await self.document_repository.update_processing_version(
+                document=document,
+                processing_version=settings.processing_version,
+                parser_version=settings.parser_version,
+                chunking_version=settings.chunking_version,
+                metadata_version=settings.metadata_version,
+                embedding_model=settings.embedding_model
+            )
+            await self.document_repository.mark_ready(document=document)
             await self.session.commit()
             return document
         except Exception:
@@ -108,3 +118,50 @@ class IngestionPipeline:
     async def _progress(self, callback: ProgressCallback | None, step: str, progress: int):
         if callback is not None:
             await callback(step, progress)
+
+    async def reindex(self, *, file_path: Path, on_progress: ProgressCallback | None = None):
+        parser = self.parser_registry.get(file_path)
+
+        await self._progress(on_progress, "parsing", 10)
+
+        parsed_document = await parser.parse(file_path)
+
+        await self._progress(on_progress, "enriching", 30)
+
+        metadata = await self.metadata_extractor.extract_metadata(parsed_document)
+
+        await self._progress(on_progress, "chunking", 50)
+
+        chunks = self.chunker.chunk(parsed_document)
+
+        await self._progress(on_progress, "embedding", 65)
+
+        embeddings = (
+            self.embedding_service.embed_documents([
+                self._prepare_chunk_text(chunk, metadata) for chunk in chunks
+            ])
+        )
+
+        await self._progress(on_progress, "indexing", 90)
+
+        await self.document_repository.update_metadata(document=document, metadata=metadata)
+
+        for chunk in chunks:
+            chunk.metadata.update({
+                "countries": metadata.countries,
+                "source_type": metadata.source_type,
+                "authority": metadata.authority,
+                "legal_references": metadata.legal_references,
+                "publication_date": metadata.publication_date.isoformat() if metadata.publication_date else None,
+                "effective_date": metadata.effective_date.isoformat() if metadata.effective_date else None,
+            })
+
+        await self.document_repository.replace_chuncks(document_id=document.id, chunks=chunks, embeddings=embeddings)
+        await self.document_repository.update_processing_version(
+            document=document,
+            processing_version=settings.processing_version,
+            parser_version=settings.parser_version,
+            chunking_version=settings.chunking_version,
+            metadata_version=settings.metadata_version,
+            embedding_model=settings.embedding_model
+        )
