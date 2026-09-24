@@ -185,3 +185,10 @@ uv run python scripts/enrich_existing_documents.py
 ```bash
 uv run arq ingestion_api.workers.settings.WorkerSettings
 ```
+
+### Logs Prometheus
+
+```bash
+docker compose exec prometheus sh
+curl localhost:8000/metrics
+```

@@ -5,3 +5,7 @@ data/
 dist/
 *.pyc
 .env
+monitoring/prometheus.yml
+.DS_Store
+alembic/.DS_Store
+alembic/versions/.DS_Store

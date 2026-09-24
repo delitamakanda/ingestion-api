@@ -1,4 +1,18 @@
 services:
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+    extra_hosts:
+        - "host.docker.internal:host-gateway"
+    restart: unless-stopped
+
   redis:
     image: redis:7-alpine
     ports:
@@ -23,3 +37,4 @@ services:
 
 volumes:
   postgres-data:
+  prometheus-data:
