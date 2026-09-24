@@ -13,6 +13,7 @@ from ingestion_api.domain.jobs.repository import JobRepository
 from ingestion_api.llm.embeddings.sentence_transformer import SentenceTransformerEmbeddingService
 from ingestion_api.domain.ingestion.exceptions import PermanentIngestionError, RetryableIngestionError
 from ingestion_api.core.database import AsyncSessionFactory
+from ingestion_api.core.metrics import (INGESTION_JOBS_TOTAL, INGESTION_DURATION_SECONDS)
 
 logger = get_logger(__name__)
 
@@ -79,15 +80,19 @@ async def process_ingestion_job(*, job_id: UUID, session):
         await jobs.attach_document(job, document_id=document.id)
         await jobs.mark_completed(job)
         await session.commit()
-        end_time = time.perf_counter() - start_time * 1000
+        end_time = (time.perf_counter() - start_time) * 1000
+        INGESTION_JOBS_TOTAL.labels(job_type=job.job_type, status="completed").inc()
+        INGESTION_DURATION_SECONDS.labels(job_type=job.job_type).observe(end_time)
         logger.info("ingestion.job.completed", document_id=document.id, duration=round(end_time, 2))
     except PermanentIngestionError as e:
         await session.rollback()
         job = await jobs.get_job_by_id(job_id)
         if job:
+            INGESTION_JOBS_TOTAL.labels(job_type=job.job_type, status="failed").inc()
             await jobs.mark_failed(job, error_code="PERMANENT_INGESTION_ERROR", error_message=str(e))
             await session.commit()
     except RetryableIngestionError:
+        INGESTION_JOBS_TOTAL.labels(job_type=job.job_type, status="failed").inc()
         await session.rollback()
         raise
     except Exception as e:

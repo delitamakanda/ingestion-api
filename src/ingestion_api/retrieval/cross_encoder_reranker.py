@@ -6,6 +6,7 @@ from ingestion_api.domain.search.schemas import SearchResult
 
 from ingestion_api.retrieval.reranker import Reranker
 from ingestion_api.core.logging import get_logger
+from ingestion_api.core.metrics import RERANKER_REQUESTS_TOTAL, RERANKER_DURATION_SECONDS, RERANKER_CANDIDATES
 
 logger = get_logger(__name__)
 
@@ -16,6 +17,9 @@ class CrossEncoderReranker(Reranker):
     def rerank(self, *, query: str, results: list[SearchResult], top_k: int) -> list[SearchResult]:
         start_time = time.perf_counter()
         if not results:
+            RERANKER_REQUESTS_TOTAL.inc()
+            RERANKER_DURATION_SECONDS.observe((time.perf_counter() - start_time) * 1000)
+            RERANKER_CANDIDATES.observe(0)
             return []
 
         pairs = [(query, self._build_passages(result)) for result in results]
@@ -28,6 +32,9 @@ class CrossEncoderReranker(Reranker):
             output.append(
                 result.model_copy(update={"reranker_score": float(score)})
             )
+        RERANKER_REQUESTS_TOTAL.inc()
+        RERANKER_DURATION_SECONDS.observe((time.perf_counter() - start_time) * 1000)
+        RERANKER_CANDIDATES.observe(len(results))
         logger.info("cross_encoder_reranker.rerank.completed", query=query, top_k=top_k, elapsed=(time.perf_counter() - start_time) * 1000)
         return output
 

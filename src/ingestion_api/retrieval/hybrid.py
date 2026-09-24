@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from ingestion_api.domain.documents.schemas import SOURCE_WEIGHTS, SourceType
 from ingestion_api.domain.search.schemas import SearchResult, RetrievalRequest
 from ingestion_api.llm.schemas import SearchPlan
+from ingestion_api.core.metrics import (RETRIEVAL_REQUESTS_TOTAL, RETRIEVAL_DURATION_SECONDS, RETRIEVAL_RESULTS)
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from ingestion_api.retrieval.cross_encoder_reranker import CrossEncoderReranker
@@ -50,22 +51,32 @@ class HybridRetriever:
     async def search(self, request: RetrievalRequest, session: AsyncSession, limit: int = 10):
         logger.info("hybrid_retriever.search.started", query=request.query, limit=limit)
         start_time = time.perf_counter()
-        lexical_results = await self.lexical_retriever.keyword_search( request, session)
-        vector_results = await self.vector_retriever.search(request, session=session, limit=30)
+        try:
+            lexical_results = await self.lexical_retriever.keyword_search( request, session)
+            vector_results = await self.vector_retriever.search(request, session=session, limit=30)
 
-        combined_results: dict[str, RankedResult] = {}
+            combined_results: dict[str, RankedResult] = {}
 
-        self._merge(combined_results, lexical_results)
-        self._merge(combined_results, vector_results)
+            self._merge(combined_results, lexical_results)
+            self._merge(combined_results, vector_results)
 
-        ranked = sorted(combined_results.values(), key=lambda x: x.score, reverse=True)
-        # Add lexical results to the combined results
-        results = []
-        for item in ranked[:limit]:
-            item.result.score = item.score
-            results.append(item.result)
-        logger.info("hybrid_retriever.search.completed", query=request.query, limit=limit, elapsed=(time.perf_counter() - start_time) * 1000)
-        return results
+            ranked = sorted(combined_results.values(), key=lambda x: x.score, reverse=True)
+            # Add lexical results to the combined results
+            results = []
+            for item in ranked[:limit]:
+                item.result.score = item.score
+                results.append(item.result)
+            logger.info("hybrid_retriever.search.completed", query=request.query, limit=limit, elapsed=(time.perf_counter() - start_time) * 1000)
+            RETRIEVAL_REQUESTS_TOTAL.labels(status="completed").inc()
+            RETRIEVAL_DURATION_SECONDS.observe((time.perf_counter() - start_time) * 1000)
+            RETRIEVAL_RESULTS.observe(len(results))
+            return results
+        except Exception:
+            logger.exception("hybrid_retriever.search.failed", query=request.query, limit=limit, elapsed=(time.perf_counter() - start_time) * 1000)
+            RETRIEVAL_REQUESTS_TOTAL.labels(status="failed").inc()
+            RETRIEVAL_DURATION_SECONDS.observe((time.perf_counter() - start_time) * 1000)
+            RETRIEVAL_RESULTS.observe(0)
+            return []
 
 
     def _merge(self, combined_results: dict[str, RankedResult], new_results: list[SearchResult]):
