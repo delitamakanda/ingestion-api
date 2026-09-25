@@ -180,6 +180,12 @@ uv run python scripts/embed_existing_chunks.py
 uv run python scripts/enrich_existing_documents.py
 ```
 
+## Tests grafana
+
+```bash
+uv run python scripts/generate_traffic.py
+```
+
 ## workers
 
 ```bash
