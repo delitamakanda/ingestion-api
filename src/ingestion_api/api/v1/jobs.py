@@ -1,11 +1,13 @@
+from typing import Annotated
 from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from ingestion_api.domain.jobs.enums import JobStatus
-from ingestion_api.domain.jobs.schemas import JobResponse
 from ingestion_api.core.database import get_db
+from ingestion_api.domain.jobs.enums import JobStatus
 from ingestion_api.domain.jobs.repository import JobRepository
+from ingestion_api.domain.jobs.schemas import JobResponse
 from ingestion_api.workers.broker import ArqJobBroker
 
 broker = ArqJobBroker()
@@ -15,9 +17,10 @@ router = APIRouter(
     prefix="/jobs",
     tags=["jobs"]
 )
+DatabaseSession = Annotated[AsyncSession, Depends(get_db)]
 
 @router.get("/{job_id}", response_model=JobResponse)
-async def get_job(job_id: UUID, session: AsyncSession = Depends(get_db)):
+async def get_job(job_id: UUID, session: DatabaseSession):
     job_repository = JobRepository(session)
     job = await job_repository.get_job_by_id(job_id)
 
@@ -27,13 +30,13 @@ async def get_job(job_id: UUID, session: AsyncSession = Depends(get_db)):
     return job
 
 @router.get("/", response_model=list[JobResponse])
-async def list_jobs(status: JobStatus | None = None, session: AsyncSession = Depends(get_db)):
+async def list_jobs(session: DatabaseSession, status: JobStatus | None = None):
     job_repository = JobRepository(session)
     return await job_repository.list_jobs(status=status)
 
 
 @router.post("/{job_id}/retry", response_model=JobResponse)
-async def retry_job(job_id: UUID, session: AsyncSession = Depends(get_db)):
+async def retry_job(job_id: UUID, session: DatabaseSession):
     job_repository = JobRepository(session)
     job = await job_repository.get_job_by_id(job_id)
 

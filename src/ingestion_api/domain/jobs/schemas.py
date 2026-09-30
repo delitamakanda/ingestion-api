@@ -5,6 +5,7 @@ from pydantic import BaseModel, ConfigDict
 
 from ingestion_api.domain.jobs.enums import JobStatus
 
+
 class JobResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

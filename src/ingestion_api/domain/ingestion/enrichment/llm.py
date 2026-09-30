@@ -26,7 +26,7 @@ class LLMExtractedMetadata(BaseModel):
     legal_references: list[str] = Field(default_factory=list)
 
 
-SYSTEM_PROMPT = """
+SYSTEM_PROMPT += """
 You extract metadata from documents. 
 
 Return only information that is supported by the document.
@@ -36,7 +36,7 @@ Rules:
 - Do not infer a country merely because another country is mentioned in the document.
 - language: language of the document
 - source_type: type of the document source (e.g. newspaper, website, etc.)
-- autority: authority or organization that published the document
+- authority: authority or organization that published the document
 - publication_date: date when the document was published
 - effective_date: date when the document became effective
 - do not confuse publication_date with effective_date.

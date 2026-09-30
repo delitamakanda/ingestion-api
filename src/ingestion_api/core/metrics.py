@@ -1,6 +1,5 @@
 from prometheus_client import Counter, Histogram
 
-
 INGESTION_JOBS_TOTAL = Counter(
     "ingestion_jobs_total",
     "Total number of ingestion jobs",

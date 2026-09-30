@@ -1,7 +1,9 @@
-from ingestion_api.domain.search.schemas import SearchRequest, SearchResponse, SearchResult
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from ingestion_api.domain.search.schemas import SearchRequest, SearchResponse
 from ingestion_api.domain.search.strategies.base import SearchStrategy
 from ingestion_api.retrieval.lexical import LexicalRetriever
-from sqlalchemy.ext.asyncio import AsyncSession
+
 
 class TextSearchStrategy(SearchStrategy):
 

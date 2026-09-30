@@ -4,7 +4,8 @@ from uuid import UUID
 import pymupdf
 
 from ingestion_api.domain.ingestion.parsers.base import DocumentParser
-from ingestion_api.domain.ingestion.schemas import ParsedDocument, DocumentElement
+from ingestion_api.domain.ingestion.schemas import DocumentElement, ParsedDocument
+
 
 class PdfParser(DocumentParser):
     async def parse(self, file_path: Path) -> ParsedDocument:

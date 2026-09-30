@@ -1,13 +1,8 @@
 import asyncio
-
 import random
-
 import statistics
-
 import time
-
 from dataclasses import dataclass
-
 from pathlib import Path
 
 import httpx
@@ -50,7 +45,7 @@ async def request(
         response = await client.request(method, url, **kwargs)
         duration = time.perf_counter() - started
         results.append(RequestResult(endpoint=endpoint, status_code=response.status_code, duration=duration))
-    except Exception as e:
+    except httpx.HTTPError as e:
         duration = time.perf_counter() - started
         results.append(RequestResult(endpoint=endpoint, status_code=0, duration=duration, error=str(e)))
 
@@ -67,8 +62,14 @@ async def not_found(client: httpx.AsyncClient):
 
 async def upload_file(client: httpx.AsyncClient):
     filename = random.choice(FILES)
-    with open(filename, "rb") as f:
-        await request(client, "POST", f"{BASE_URL}/api/v1/ingestion/documents/", endpoint="upload_file", files={"file": (Path(filename).name, f)})
+    content = await asyncio.to_thread(Path(filename).read_bytes)
+    await request(
+        client,
+        "POST",
+        f"{BASE_URL}/api/v1/ingestion/documents/",
+        endpoint="upload_file",
+        files={"file": (Path(filename).name, content)},
+    )
 
 async def perform_requests(client: httpx.AsyncClient, duration: int):
     end_time = time.time() + duration

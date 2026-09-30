@@ -1,6 +1,5 @@
 import pytest
 
-
 from tests.evaluation.dataset import load_dataset
 from tests.evaluation.evaluator import RetrievalEvaluator
 

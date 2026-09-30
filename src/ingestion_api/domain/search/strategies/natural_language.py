@@ -1,16 +1,25 @@
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from ingestion_api.core.config import settings
-from ingestion_api.domain.search.schemas import SearchRequest, SearchResponse, CitationSource, SearchResult, \
-    NaturalLanguageAnswerResponse
+from ingestion_api.domain.ingestion.parsers.web import WebParser
+from ingestion_api.domain.ingestion.pipeline import IngestionPipeline
+from ingestion_api.domain.ingestion.regulation_service import RegulationService
+from ingestion_api.domain.search.schemas import (
+    CitationSource,
+    NaturalLanguageAnswerResponse,
+    SearchRequest,
+    SearchResponse,
+    SearchResult,
+)
 from ingestion_api.domain.search.strategies.base import SearchStrategy
 from ingestion_api.llm.agents.query_planner import QueryPlannerAgent
 from ingestion_api.llm.agents.synthesis import SynthesisAgent
 from ingestion_api.llm.agents.temporal import TemporalAgent
-from ingestion_api.llm.embeddings.sentence_transformer import SentenceTransformerEmbeddingService
+from ingestion_api.llm.embeddings.sentence_transformer import (
+    SentenceTransformerEmbeddingService,
+)
 from ingestion_api.retrieval.hybrid import HybridRetriever
-from ingestion_api.domain.ingestion.parsers.web import WebParser
-from ingestion_api.domain.ingestion.pipeline import IngestionPipeline
-from ingestion_api.domain.ingestion.regulation_service import RegulationService
-from sqlalchemy.ext.asyncio import AsyncSession
+
 
 class NaturalLanguageSearchStrategy(SearchStrategy):
 

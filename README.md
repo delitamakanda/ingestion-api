@@ -1,5 +1,12 @@
 # Ingestion API
 
+
+An ingestion API for document processing, search, and retrieval. This project is structured to handle document ingestion, chunking, enrichment, and provides a search interface with various retrieval strategies.
+
+
+## Project Structure
+
+
 ```text
 ingestion-api/
 │
@@ -96,6 +103,8 @@ ingestion-api/
 
 ## Getting Started
 
+### Start the application
+
 ```bash
 uv run uvicorn ingestion_api.main:app --reload
 ```
@@ -108,6 +117,12 @@ docker-compose up -d
 
 ## Inital Setup
 
+### Install dependencies
+
+```bash
+uv install
+```
+
 Initial alembic setup
 
 ```bash
@@ -118,7 +133,8 @@ uv run alembic revision -m "add trigram search index"
 uv run alembic upgrade head
 ```
 
-## Actiivate PGVector
+## Activate PGVector
+
 ```bash
 docker compose exec postgres psql -U ingestion -d ingestion
 ```
@@ -128,11 +144,10 @@ in postgres
 CREATE EXTENSION IF NOT EXISTS vector;
 
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
-
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
 ```
 
-## acces to postgres database
+## Access to postgres database
+
 ```bash
 docker compose exec postgres psql -U ingestion -d ingestion
 
@@ -173,7 +188,7 @@ LIMIT 1;
 ```
 
 
-## Enrich existing documents
+### Enrich existing chunks and documents
 
 ```bash
 uv run python scripts/embed_existing_chunks.py

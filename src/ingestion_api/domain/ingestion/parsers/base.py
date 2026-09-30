@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from pathlib import Path
 
-
 from ingestion_api.domain.ingestion.schemas import ParsedDocument
+
 
 class DocumentParser(ABC):
     @abstractmethod

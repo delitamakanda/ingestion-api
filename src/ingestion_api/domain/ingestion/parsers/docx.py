@@ -1,11 +1,12 @@
 from pathlib import Path
+
 from docx import Document
 from docx.table import Table
 from docx.text.paragraph import Paragraph
 
 from ingestion_api.domain.ingestion.parsers.base import DocumentParser
+from ingestion_api.domain.ingestion.schemas import DocumentElement, ParsedDocument
 
-from ingestion_api.domain.ingestion.schemas import ParsedDocument, DocumentElement
 
 class DocxParser(DocumentParser):
 

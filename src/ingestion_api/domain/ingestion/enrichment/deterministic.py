@@ -1,9 +1,10 @@
 import re
 from datetime import date
 
-from ingestion_api.domain.ingestion.enrichment.legal_references import extract_legal_references
+from ingestion_api.domain.ingestion.enrichment.legal_references import (
+    extract_legal_references,
+)
 from ingestion_api.domain.ingestion.enrichment.models import ExtractedMetadata
-
 from ingestion_api.domain.ingestion.schemas import ParsedDocument
 
 COUNTRY_PATTERN = {

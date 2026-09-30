@@ -1,10 +1,9 @@
 from datetime import date
 
-from enum import StrEnum
-
 from pydantic import BaseModel, Field
 
 from ingestion_api.domain.documents.schemas import SourceType
+
 
 class MetadataConfidence(BaseModel):
     countries: float = 0

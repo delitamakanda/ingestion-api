@@ -1,19 +1,25 @@
 import time
-import structlog
-from uuid import UUID
 from pathlib import Path
+from uuid import UUID
+
+import structlog
 
 from ingestion_api.core.config import settings
-from ingestion_api.domain.documents.models import Document
+from ingestion_api.core.database import AsyncSessionFactory
 from ingestion_api.core.logging import get_logger
+from ingestion_api.core.metrics import INGESTION_DURATION_SECONDS, INGESTION_JOBS_TOTAL
+from ingestion_api.domain.documents.models import Document
+from ingestion_api.domain.ingestion.exceptions import (
+    PermanentIngestionError,
+    RetryableIngestionError,
+)
 from ingestion_api.domain.ingestion.pipeline import IngestionPipeline
 from ingestion_api.domain.jobs.enums import ProcessingStep
 from ingestion_api.domain.jobs.models import JobType
 from ingestion_api.domain.jobs.repository import JobRepository
-from ingestion_api.llm.embeddings.sentence_transformer import SentenceTransformerEmbeddingService
-from ingestion_api.domain.ingestion.exceptions import PermanentIngestionError, RetryableIngestionError
-from ingestion_api.core.database import AsyncSessionFactory
-from ingestion_api.core.metrics import (INGESTION_JOBS_TOTAL, INGESTION_DURATION_SECONDS)
+from ingestion_api.llm.embeddings.sentence_transformer import (
+    SentenceTransformerEmbeddingService,
+)
 
 logger = get_logger(__name__)
 

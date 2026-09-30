@@ -1,14 +1,18 @@
 import time
 from dataclasses import dataclass
 
-from ingestion_api.domain.documents.schemas import SOURCE_WEIGHTS, SourceType
-from ingestion_api.domain.search.schemas import SearchResult, RetrievalRequest
-from ingestion_api.llm.schemas import SearchPlan
-from ingestion_api.core.metrics import (RETRIEVAL_REQUESTS_TOTAL, RETRIEVAL_DURATION_SECONDS, RETRIEVAL_RESULTS)
-
 from sqlalchemy.ext.asyncio import AsyncSession
-from ingestion_api.retrieval.cross_encoder_reranker import CrossEncoderReranker
+
 from ingestion_api.core.logging import get_logger
+from ingestion_api.core.metrics import (
+    RETRIEVAL_DURATION_SECONDS,
+    RETRIEVAL_REQUESTS_TOTAL,
+    RETRIEVAL_RESULTS,
+)
+from ingestion_api.domain.documents.schemas import SOURCE_WEIGHTS, SourceType
+from ingestion_api.domain.search.schemas import RetrievalRequest, SearchResult
+from ingestion_api.llm.schemas import SearchPlan
+from ingestion_api.retrieval.cross_encoder_reranker import CrossEncoderReranker
 
 logger = get_logger(__name__)
 

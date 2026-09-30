@@ -1,17 +1,18 @@
 
-from sqlalchemy import select
 from pathlib import Path
 
-from ingestion_api.domain.ingestion.enrichment.deterministic import DeterminisiticMetadataExtractor
+from sqlalchemy import select
+
+from ingestion_api.core.config import settings
+from ingestion_api.core.database import AsyncSessionFactory
+from ingestion_api.domain.documents.models import Document
+from ingestion_api.domain.ingestion.enrichment.deterministic import (
+    DeterminisiticMetadataExtractor,
+)
+from ingestion_api.domain.ingestion.enrichment.extractor import MetadataExtractor
 from ingestion_api.domain.ingestion.enrichment.llm import LLMMetadataExtractor
 from ingestion_api.domain.ingestion.enrichment.normalizer import MetadataNormalizer
 from ingestion_api.domain.ingestion.parsers.registry import ParserRegistry
-from ingestion_api.domain.ingestion.enrichment.extractor import MetadataExtractor
-
-from ingestion_api.core.config import settings
-
-from ingestion_api.core.database import AsyncSessionFactory
-from ingestion_api.domain.documents.models import Document
 from ingestion_api.llm.providers.openai import OpenAILLMProvider
 
 
@@ -68,7 +69,7 @@ async def main():
                     f" -> {metadata.source_type.value}"
                     f" -> {metadata.countries}"
                 )
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 - continue evaluating remaining cases
                 print(f"Error processing file {file_path}: {e}")
 
         await session.commit()

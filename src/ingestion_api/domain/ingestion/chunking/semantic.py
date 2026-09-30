@@ -1,6 +1,6 @@
-from typing import cast
 
-from ingestion_api.domain.ingestion.schemas import ChunkData,ParsedDocument
+from ingestion_api.domain.ingestion.schemas import ChunkData, ParsedDocument
+
 
 class SemanticChunker:
     def __init__(self, max_chunk_size: int = 1000, overlap_chars: int = 500):

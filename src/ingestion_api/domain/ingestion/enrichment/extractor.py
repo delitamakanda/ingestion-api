@@ -1,5 +1,9 @@
-from ingestion_api.domain.ingestion.enrichment.deterministic import DeterminisiticMetadataExtractor
-from ingestion_api.domain.ingestion.enrichment.llm import LLMExtractedMetadata, LLMMetadataExtractor
+from ingestion_api.domain.ingestion.enrichment.deterministic import (
+    DeterminisiticMetadataExtractor,
+)
+from ingestion_api.domain.ingestion.enrichment.llm import (
+    LLMMetadataExtractor,
+)
 from ingestion_api.domain.ingestion.enrichment.normalizer import MetadataNormalizer
 
 

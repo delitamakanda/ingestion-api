@@ -1,10 +1,10 @@
 import time
-from typing import Any
 
 from openai import AsyncOpenAI
+
 from ingestion_api.core.logging import get_logger
+from ingestion_api.core.metrics import LLM_DURATION_SECONDS, LLM_REQUESTS_TOTAL
 from ingestion_api.llm.providers.base import LLMProvider, T
-from ingestion_api.core.metrics import LLM_REQUESTS_TOTAL, LLM_DURATION_SECONDS
 
 logger = get_logger(__name__)
 

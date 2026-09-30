@@ -2,11 +2,14 @@ import time
 
 from sentence_transformers import CrossEncoder
 
-from ingestion_api.domain.search.schemas import SearchResult
-
-from ingestion_api.retrieval.reranker import Reranker
 from ingestion_api.core.logging import get_logger
-from ingestion_api.core.metrics import RERANKER_REQUESTS_TOTAL, RERANKER_DURATION_SECONDS, RERANKER_CANDIDATES
+from ingestion_api.core.metrics import (
+    RERANKER_CANDIDATES,
+    RERANKER_DURATION_SECONDS,
+    RERANKER_REQUESTS_TOTAL,
+)
+from ingestion_api.domain.search.schemas import SearchResult
+from ingestion_api.retrieval.reranker import Reranker
 
 logger = get_logger(__name__)
 

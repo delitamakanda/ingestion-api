@@ -1,10 +1,9 @@
 import uuid
-from datetime import datetime, date
+from datetime import date, datetime
 
 from pgvector.sqlalchemy import VECTOR
-from sqlalchemy import ForeignKey, Text
-from sqlalchemy import Integer, String, DateTime, Date, func, Computed
-from sqlalchemy.dialects.postgresql import JSONB, UUID, TSVECTOR, ARRAY
+from sqlalchemy import Computed, Date, DateTime, ForeignKey, Integer, String, Text, func
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, TSVECTOR, UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from ingestion_api.core.models import Base

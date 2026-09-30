@@ -1,15 +1,18 @@
+import asyncio
 from pathlib import Path
+
 from bs4 import BeautifulSoup
 
 from ingestion_api.domain.ingestion.parsers.base import DocumentParser
-from ingestion_api.domain.ingestion.schemas import ParsedDocument, DocumentElement
+from ingestion_api.domain.ingestion.schemas import DocumentElement, ParsedDocument
 
 
 class HtmlParser(DocumentParser):
     async def parse(self, file_path: Path) -> ParsedDocument:
-        html = file_path.read_text(
+        html = await asyncio.to_thread(
+            file_path.read_text,
             encoding="utf-8",
-            errors="ignore"
+            errors="ignore",
         )
         soup = BeautifulSoup(
             html,

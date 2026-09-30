@@ -1,4 +1,3 @@
-from fileinput import filename
 from pathlib import Path
 from tempfile import NamedTemporaryFile
 from urllib.parse import urlparse

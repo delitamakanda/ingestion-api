@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class SearchMode(Enum):
     KEYWORD = "keyword"
     TEXT = "text"

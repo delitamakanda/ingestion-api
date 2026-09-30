@@ -1,12 +1,16 @@
-from datetime import datetime
+from collections.abc import Awaitable, Callable
+from datetime import UTC, datetime
 from pathlib import Path
+
+from docx import document
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ingestion_api.core.config import settings
-from ingestion_api.domain.documents.models import Document
 from ingestion_api.domain.documents.repository import DocumentRepository
 from ingestion_api.domain.ingestion.chunking.semantic import SemanticChunker
-from ingestion_api.domain.ingestion.enrichment.deterministic import DeterminisiticMetadataExtractor
+from ingestion_api.domain.ingestion.enrichment.deterministic import (
+    DeterminisiticMetadataExtractor,
+)
 from ingestion_api.domain.ingestion.enrichment.extractor import MetadataExtractor
 from ingestion_api.domain.ingestion.enrichment.llm import LLMMetadataExtractor
 from ingestion_api.domain.ingestion.enrichment.normalizer import MetadataNormalizer
@@ -14,7 +18,6 @@ from ingestion_api.domain.ingestion.parsers.registry import ParserRegistry
 from ingestion_api.domain.ingestion.schemas import ChunkData
 from ingestion_api.llm.embeddings.base import EmbeddingService
 from ingestion_api.llm.providers.openai import OpenAILLMProvider
-from collections.abc import Awaitable, Callable
 
 ProgressCallback = Callable[[str, int], Awaitable[None]]
 
@@ -52,7 +55,7 @@ class IngestionPipeline:
                     content_hash=content_hash,
                     title=parsed_document.title,
                     document_type=file_path.suffix.lower().lstrip("."),
-                    publication_date=datetime.now().strftime("%Y-%m-%d")
+                    publication_date=datetime.now(UTC).strftime("%Y-%m-%d")
                 )
             )
 

@@ -1,8 +1,8 @@
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ingestion_api.domain.documents.models import Document, DocumentChunk
-from ingestion_api.domain.search.schemas import SearchResult, SearchRequest
+from ingestion_api.domain.search.schemas import SearchRequest, SearchResult
 from ingestion_api.retrieval.filters import apply_search_filters
 
 

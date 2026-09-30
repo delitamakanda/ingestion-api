@@ -1,11 +1,11 @@
-from ingestion_api.domain.jobs.models import IngestionJob, JobType
-from datetime import datetime, UTC
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from ingestion_api.domain.jobs.enums import JobStatus, ProcessingStep
 
+from ingestion_api.domain.jobs.enums import JobStatus, ProcessingStep
+from ingestion_api.domain.jobs.models import IngestionJob, JobType
 
 
 class JobRepository:

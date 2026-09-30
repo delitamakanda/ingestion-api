@@ -1,14 +1,21 @@
-from fastapi import APIRouter, status, Depends, Response
+from typing import Annotated
 
+from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ingestion_api.core.database import get_db
-
-from ingestion_api.core.health import HealthResponse, HealthStatus, ReadinessResponse, check_database_health, check_redis_health
+from ingestion_api.core.health import (
+    HealthResponse,
+    HealthStatus,
+    ReadinessResponse,
+    check_database_health,
+    check_redis_health,
+)
 
 router = APIRouter(
     tags=["health"]
 )
+DatabaseSession = Annotated[AsyncSession, Depends(get_db)]
 
 @router.get("/health", response_model=HealthResponse)
 async def health() -> HealthResponse:
@@ -18,7 +25,7 @@ async def health() -> HealthResponse:
     return HealthResponse(status=HealthStatus.HEALTHY)
 
 @router.get("/ready", response_model=ReadinessResponse)
-async def readiness(response: Response, db: AsyncSession = Depends(get_db)) -> ReadinessResponse:
+async def readiness(response: Response, db: DatabaseSession) -> ReadinessResponse:
     """
     Readiness check endpoint.
     """

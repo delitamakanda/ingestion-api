@@ -1,10 +1,9 @@
 from pathlib import Path
-from ingestion_api.domain.ingestion.parsers.base import DocumentParser
 
+from ingestion_api.domain.ingestion.parsers.base import DocumentParser
 from ingestion_api.domain.ingestion.parsers.docx import DocxParser
 from ingestion_api.domain.ingestion.parsers.html import HtmlParser
 from ingestion_api.domain.ingestion.parsers.pdf import PdfParser
-from ingestion_api.domain.ingestion.parsers.web import WebParser
 
 
 class ParserRegistry:

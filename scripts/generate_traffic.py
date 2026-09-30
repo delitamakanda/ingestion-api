@@ -1,6 +1,7 @@
 import asyncio
 import random
 import time
+
 import httpx
 
 BASE_URL = "http://127.0.0.1:8000"
@@ -22,7 +23,7 @@ async def not_found(client: httpx.AsyncClient):
 
 async def upload(client: httpx.AsyncClient):
     filename = random.choice(FILES)
-    with open(filename, "rb") as f:
+    async with await asyncio.to_thread(open, filename, "rb") as f:
         files = {"file": (filename, f, "application/vnd.openxmlformats-officedocument.wordprocessingml.document")}
         return await client.post(f"{BASE_URL}/api/v1/ingestion/documents/", files=files, timeout=60.0)
 
@@ -36,7 +37,7 @@ async def execute_request(client: httpx.AsyncClient):
 
         duration = time.perf_counter() - started
         print(f"Request to {choice.__name__} took {duration:.2f} seconds. Status code: {response.status_code}")
-    except Exception as e:
+    except httpx.HTTPError as e:
         duration = time.perf_counter() - started
         print(f"Request to {choice.__name__} failed after {duration:.2f} seconds. Error: {e}")
 

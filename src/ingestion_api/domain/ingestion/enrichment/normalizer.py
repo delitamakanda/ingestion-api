@@ -1,5 +1,6 @@
 from ingestion_api.domain.ingestion.enrichment.models import ExtractedMetadata
 
+
 class MetadataNormalizer:
 
     def merge(self, deterministic: ExtractedMetadata, llm_metadata) -> ExtractedMetadata:

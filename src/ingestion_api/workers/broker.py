@@ -5,6 +5,7 @@ from arq.connections import RedisSettings, create_pool
 
 from ingestion_api.core.config import settings
 
+
 class JobBroker(ABC):
 
     @abstractmethod

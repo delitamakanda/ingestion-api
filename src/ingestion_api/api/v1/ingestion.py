@@ -1,20 +1,23 @@
+import asyncio
 import hashlib
 from functools import lru_cache
 from pathlib import Path
-from uuid import uuid4
 from typing import Annotated
+from uuid import uuid4
 
-from fastapi import APIRouter, File, UploadFile as FastAPIUploadFile, Depends
+from fastapi import APIRouter, Depends, File
+from fastapi import UploadFile as FastAPIUploadFile
 from pydantic import WithJsonSchema
-
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ingestion_api.core.config import settings
 from ingestion_api.core.database import get_db
-from ingestion_api.domain.jobs.repository import JobRepository
-from ingestion_api.llm.embeddings.sentence_transformer import SentenceTransformerEmbeddingService
-from ingestion_api.workers.broker import ArqJobBroker
 from ingestion_api.core.logging import get_logger
+from ingestion_api.domain.jobs.repository import JobRepository
+from ingestion_api.llm.embeddings.sentence_transformer import (
+    SentenceTransformerEmbeddingService,
+)
+from ingestion_api.workers.broker import ArqJobBroker
 
 logger = get_logger(__name__)
 
@@ -33,15 +36,16 @@ SwaggerUploadFile = Annotated[
         "format": "binary",
     })
 ]
+UploadedFiles = Annotated[list[SwaggerUploadFile], File(...)]
 
 ALLOWED_EXTENSIONS = {".pdf", ".docx", ".txt"}
 
-@lru_cache()
+@lru_cache
 def get_embedding_service():
     return SentenceTransformerEmbeddingService(model_name=settings.embedding_model)
 
 @router.post("/documents")
-async def upload_documents(files: list[SwaggerUploadFile] = File(...), session: AsyncSession = Depends(get_db)):
+async def upload_documents(files: UploadedFiles, session: Annotated[AsyncSession, Depends(get_db)]):
     upload_dir = Path(settings.upload_dir)
     upload_dir.mkdir(parents=True, exist_ok=True)
 
@@ -79,7 +83,7 @@ async def upload_documents(files: list[SwaggerUploadFile] = File(...), session: 
         stored_filename = f"{uuid4()}{extension}"
 
         path = upload_dir / stored_filename
-        path.write_bytes(content)
+        await asyncio.to_thread(path.write_bytes, content)
 
         job = await job_repository.create_job(original_filename=original_filename, stored_filename=stored_filename, content_hash=content_hash)
 

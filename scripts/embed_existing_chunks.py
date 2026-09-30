@@ -1,14 +1,12 @@
-import os
 
 from sqlalchemy import select
 
 from ingestion_api.core.config import settings
-
 from ingestion_api.core.database import AsyncSessionFactory
-
 from ingestion_api.domain.documents.models import DocumentChunk
-
-from ingestion_api.llm.embeddings.sentence_transformer import SentenceTransformerEmbeddingService
+from ingestion_api.llm.embeddings.sentence_transformer import (
+    SentenceTransformerEmbeddingService,
+)
 
 BATCH_SIZE = 32
 

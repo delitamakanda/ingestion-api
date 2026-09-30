@@ -1,5 +1,4 @@
 import json
-
 from pathlib import Path
 
 from tests.evaluation.models import EvaluationCase

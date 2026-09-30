@@ -2,10 +2,8 @@ import asyncio
 
 from ingestion_api.api.v1.search import get_search_router
 from ingestion_api.core.database import AsyncSessionFactory
-
-
-from tests.evaluation.evaluator import RetrievalEvaluator
 from tests.evaluation.dataset import load_dataset
+from tests.evaluation.evaluator import RetrievalEvaluator
 
 
 async def main():
@@ -41,13 +39,13 @@ async def main():
                 print(f"Term Hit Rate: {result.term_hit_rate:.3f}")
 
                 if result.retrieved_chunks_ids:
-                    print(f"Retrieved Chunk IDs:")
+                    print("Retrieved Chunk IDs:")
 
                     for rank, chunk_id in enumerate(result.retrieved_chunks_ids, start=1):
                         marker = ("*" if chunk_id in case.chunks_ids else "")
                         print(f"Rank {rank:>2}: {chunk_id}[{marker}]")
 
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 - continue evaluating remaining cases
                 print()
                 print(f"Error evaluating case {case.id}: {e}")
                 print(f"query: {case.query}")

@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import TypeVar
 
-from narwhals import schema
 from pydantic import BaseModel
 
 T = TypeVar("T", bound=BaseModel)

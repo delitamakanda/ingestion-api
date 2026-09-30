@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from ingestion_api.domain.search.schemas import SearchResponse, SearchRequest
+
+from ingestion_api.domain.search.schemas import SearchRequest, SearchResponse
 
 
 class SearchStrategy(ABC):

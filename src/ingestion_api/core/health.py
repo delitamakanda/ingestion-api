@@ -1,12 +1,13 @@
 import time
+from enum import StrEnum
+
+from arq.connections import RedisSettings, create_pool
+from pydantic import BaseModel
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
-from ingestion_api.core.logging import get_logger
-from enum import StrEnum
-from pydantic import BaseModel
-from arq.connections import RedisSettings, create_pool
 
 from ingestion_api.core.config import settings
+from ingestion_api.core.logging import get_logger
 
 logger = get_logger(__name__)
 

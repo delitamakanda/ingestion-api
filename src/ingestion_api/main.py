@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 
+from ingestion_api.api.health import router as health_router
+from ingestion_api.api.metrics import router as metrics_router
 from ingestion_api.api.router import api_router
 from ingestion_api.core.logging import configure_logging, get_logger
 from ingestion_api.core.middleware.request_context import RequestContextMiddleware
-from ingestion_api.api.health import router as health_router
-from ingestion_api.api.metrics import router as metrics_router
 
 configure_logging()
 logger = get_logger(__name__)

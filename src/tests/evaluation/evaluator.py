@@ -2,15 +2,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from ingestion_api.domain.search.router import SearchRouter
 from ingestion_api.domain.search.schemas import SearchRequest, SearchResponse
-
 from tests.evaluation.metrics import (
-precision_at_k,
-recall_at_k,
-reciprocal_rank,
-term_hit_rate,
+    precision_at_k,
+    recall_at_k,
+    reciprocal_rank,
+    term_hit_rate,
 )
+from tests.evaluation.models import EvaluationCase, EvaluationResult
 
-from tests.evaluation.models import EvaluationResult, EvaluationCase
+
 class RetrievalEvaluator:
 
     def __init__(self, search_router: SearchRouter, session: AsyncSession):

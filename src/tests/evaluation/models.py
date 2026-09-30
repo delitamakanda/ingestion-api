@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 
 from ingestion_api.domain.search.enums import SearchMode
 
+
 class ExpectedResults(BaseModel):
     """
     Model representing the expected results for a search query.
@@ -25,7 +26,7 @@ class EvaluationCase(BaseModel):
     document_ids: list[str] = Field(default_factory=list, description="The IDs of the documents to be considered for the evaluation case.")
     terms: list[str] = Field(default_factory=list, description="The terms to be considered for the evaluation case.")
 
-    def model_post_init(self, __context) -> None:
+    def model_post_init(self, __context: dict, /) -> None:
         if not self.chunks_ids:
             self.chunks_ids = self.expected.chunks_ids
         if not self.document_ids:

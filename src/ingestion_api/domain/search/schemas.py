@@ -1,4 +1,5 @@
 from datetime import date
+
 from pydantic import BaseModel, Field
 
 from ingestion_api.domain.search.enums import SearchMode

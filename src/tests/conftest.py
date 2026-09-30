@@ -1,5 +1,6 @@
-import pytest_asyncio
 import logging
+
+import pytest_asyncio
 
 from ingestion_api.api.v1.search import get_search_router
 from ingestion_api.core.database import AsyncSessionFactory, engine
@@ -24,6 +25,7 @@ async def search_router(db_session):
 @pytest_asyncio.fixture
 async def client():
     from fastapi.testclient import TestClient
+
     from ingestion_api.main import app
 
     with TestClient(app) as client:

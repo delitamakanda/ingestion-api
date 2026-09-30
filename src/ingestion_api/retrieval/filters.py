@@ -1,5 +1,4 @@
 from ingestion_api.domain.documents.models import Document
-
 from ingestion_api.domain.search.schemas import SearchRequest
 
 

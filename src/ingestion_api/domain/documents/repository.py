@@ -1,13 +1,13 @@
-from datetime import date
-from typing import Optional
+import datetime
+from datetime import UTC, date
 from uuid import UUID
-from sqlalchemy.ext.asyncio import AsyncSession
+
 from sqlalchemy import delete, select, update
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from ingestion_api.domain.documents.models import Document, DocumentChunk
-
-
 from ingestion_api.domain.ingestion.schemas import ChunkData
+
 
 class DocumentRepository:
 
@@ -81,7 +81,7 @@ class DocumentRepository:
         document.legal_references = metadata.legal_references
         document.language = metadata.language
         document.source_url = ", ".join(metadata.source_urls) if metadata.source_urls else None
-        document.publication_date = metadata.publication_date if metadata.publication_date else date.today()
+        document.publication_date = metadata.publication_date if metadata.publication_date else datetime.datetime.now(UTC).date()
         document.effective_date = metadata.effective_date
         document.expiration_date = metadata.expiration_date
         document.metadata_ = {
@@ -99,7 +99,7 @@ class DocumentRepository:
 
         await self.session.flush()
 
-    async def get_by_id(self, document_id: UUID) -> Optional[Document]:
+    async def get_by_id(self, document_id: UUID) -> Document | None:
         result = await self.session.execute(
             select(Document).where(Document.id == document_id)
         )

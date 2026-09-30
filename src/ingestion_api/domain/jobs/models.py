@@ -1,17 +1,13 @@
-from datetime import datetime, UTC
 import uuid
+from datetime import UTC, datetime
 from enum import StrEnum
 
-from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import (
-DateTime,
-ForeignKey,
-Integer,
-String,
-Text
-)
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.orm import Mapped, mapped_column
+
 from ingestion_api.core.models import Base
+
 
 class JobType(StrEnum):
     INGESTION = "ingestion"
