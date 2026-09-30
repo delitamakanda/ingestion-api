@@ -213,3 +213,5 @@ uv run arq ingestion_api.workers.settings.WorkerSettings
 docker compose exec prometheus sh
 curl localhost:8000/metrics
 ```
+
+[![CI](https://github.com/delitamakanda/ingestion-api/actions/workflows/ci.yml/badge.svg)](https://github.com/delitamakanda/ingestion-api/actions/workflows/ci.yml)
