@@ -45,7 +45,12 @@ def get_search_router(
 
     vector = VectorRetriever(session, embedding_service=embedding_service)
 
-    hybrid = HybridRetriever(lexical_retriever=retriever, vector_retriever=vector, reranker=CrossEncoderReranker(settings.reranker_model))
+    reranker = (
+        CrossEncoderReranker(settings.reranker_model)
+        if settings.reranker_model.strip()
+        else None
+    )
+    hybrid = HybridRetriever(lexical_retriever=retriever, vector_retriever=vector, reranker=reranker)
 
     llm_provider = get_llm_provider()
 
