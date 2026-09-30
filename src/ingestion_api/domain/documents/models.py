@@ -12,7 +12,9 @@ from ingestion_api.core.models import Base
 class Document(Base):
     __tablename__ = "documents"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
 
     file_name: Mapped[str] = mapped_column(String(255), nullable=False)
     stored_filename: Mapped[str] = mapped_column(String(255), nullable=True)
@@ -27,7 +29,9 @@ class Document(Base):
 
     metadata_: Mapped[dict] = mapped_column("metadata", JSONB, default=dict)
 
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
 
     countries: Mapped[list[str]] = mapped_column(
         ARRAY(String(2)),
@@ -43,29 +47,47 @@ class Document(Base):
 
     source_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
-    source_url: Mapped[str | None] = mapped_column(String(2000), unique=True, nullable=True)
+    source_url: Mapped[str | None] = mapped_column(
+        String(2000), unique=True, nullable=True
+    )
 
     authority: Mapped[str | None] = mapped_column(String(100), nullable=True)
 
-    legal_references: Mapped[list[str]] = mapped_column(ARRAY(String), nullable=True, default=list)
+    legal_references: Mapped[list[str]] = mapped_column(
+        ARRAY(String), nullable=True, default=list
+    )
 
-    processing_version: Mapped[str] = mapped_column(String(100), nullable=True, default="1.0.0")
+    processing_version: Mapped[str] = mapped_column(
+        String(100), nullable=True, default="1.0.0"
+    )
 
-    parser_version: Mapped[str] = mapped_column(String(100), nullable=True, default="1.0.0")
+    parser_version: Mapped[str] = mapped_column(
+        String(100), nullable=True, default="1.0.0"
+    )
 
-    chunking_version: Mapped[str] = mapped_column(String(100), nullable=True, default="1.0.0")
+    chunking_version: Mapped[str] = mapped_column(
+        String(100), nullable=True, default="1.0.0"
+    )
 
-    metadata_version: Mapped[str] = mapped_column(String(100), nullable=True, default="1.0.0")
+    metadata_version: Mapped[str] = mapped_column(
+        String(100), nullable=True, default="1.0.0"
+    )
 
-    embedding_model: Mapped[str] = mapped_column(String(100), nullable=True, default="intfloat/multilingual-e5-base")
+    embedding_model: Mapped[str] = mapped_column(
+        String(100), nullable=True, default="intfloat/multilingual-e5-base"
+    )
+
 
 class DocumentChunk(Base):
     __tablename__ = "document_chunks"
 
-    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
 
-    document_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), ForeignKey("documents.id", ondelete="CASCADE"),
-                                                   index=True)
+    document_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("documents.id", ondelete="CASCADE"), index=True
+    )
 
     chunk_index: Mapped[int] = mapped_column(Integer, nullable=False)
 
@@ -84,4 +106,7 @@ class DocumentChunk(Base):
     search_vector: Mapped[str] = mapped_column(
         TSVECTOR,
         Computed(
-            """to_tsvector('simple', coalesce(sections, '') || ' ' || coalesce(text, ''))""", persisted=True, ), )
+            """to_tsvector('simple', coalesce(sections, '') || ' ' || coalesce(text, ''))""",
+            persisted=True,
+        ),
+    )

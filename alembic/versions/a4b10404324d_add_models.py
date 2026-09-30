@@ -5,11 +5,12 @@ Revises: 6f865ee86a7c
 Create Date: 2026-09-07 23:29:46.768521
 
 """
+
 from collections.abc import Sequence
 
 # revision identifiers, used by Alembic.
-revision: str = 'a4b10404324d'
-down_revision: str | Sequence[str] | None = '6f865ee86a7c'
+revision: str = "a4b10404324d"
+down_revision: str | Sequence[str] | None = "6f865ee86a7c"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

@@ -5,11 +5,12 @@ Revises: a9ae2d7ce623
 Create Date: 2026-09-20 23:21:30.963619
 
 """
+
 from collections.abc import Sequence
 
 # revision identifiers, used by Alembic.
-revision: str = '3d3a7bdf4a8f'
-down_revision: str | Sequence[str] | None = 'a9ae2d7ce623'
+revision: str = "3d3a7bdf4a8f"
+down_revision: str | Sequence[str] | None = "a9ae2d7ce623"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

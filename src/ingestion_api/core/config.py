@@ -8,9 +8,13 @@ class Settings(BaseSettings):
 
     environment: str = "dev"
 
-    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/ingestion_api"
+    database_url: str = (
+        "postgresql+asyncpg://postgres:postgres@localhost:5432/ingestion_api"
+    )
 
-    alembic_database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/ingestion_api"
+    alembic_database_url: str = (
+        "postgresql+asyncpg://postgres:postgres@localhost:5432/ingestion_api"
+    )
 
     upload_dir: str = "./data/uploads"
 
@@ -22,9 +26,7 @@ class Settings(BaseSettings):
 
     metadata_version: str = "1.0.0"
 
-    embedding_model: str = (
-        'intfloat/multilingual-e5-base'
-    )
+    embedding_model: str = "intfloat/multilingual-e5-base"
 
     openai_api_key: str = ""
 
@@ -48,5 +50,6 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+
 
 settings = get_settings()

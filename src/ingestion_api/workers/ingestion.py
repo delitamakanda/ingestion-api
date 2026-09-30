@@ -23,15 +23,14 @@ from ingestion_api.llm.embeddings.sentence_transformer import (
 
 logger = get_logger(__name__)
 
+
 async def update_progress(*, job_id: UUID, step: str, progress: int):
     logger.info("ingestion.job.progress", job_id=job_id, step=step, progress=progress)
     async with AsyncSessionFactory() as session:
         jobs = JobRepository(session)
         job = await jobs.get_job_by_id(job_id)
         if job is None:
-            raise RuntimeError(
-                f"Ingestion job with ID {job_id} not found"
-        )
+            raise RuntimeError(f"Ingestion job with ID {job_id} not found")
     await jobs.update_job_status(job=job, step=ProcessingStep(step), progress=progress)
     await session.commit()
 
@@ -42,11 +41,13 @@ async def process_ingestion_job(*, job_id: UUID, session):
     jobs = JobRepository(session)
     job = await jobs.get_job_by_id(job_id)
     if job is None:
-        raise RuntimeError(
-            f"Ingestion job with ID {job_id} not found"
-        )
+        raise RuntimeError(f"Ingestion job with ID {job_id} not found")
     if job.attempts >= settings.ingestion_max_attempts:
-        await jobs.mark_failed(job, error_code='MAX_ATTEMPTS_EXCEEDED', error_message=f"Job has exceeded the maximum number of attempts ({settings.ingestion_max_attempts})")
+        await jobs.mark_failed(
+            job,
+            error_code="MAX_ATTEMPTS_EXCEEDED",
+            error_message=f"Job has exceeded the maximum number of attempts ({settings.ingestion_max_attempts})",
+        )
         await session.commit()
         return
     await jobs.mark_started(job)
@@ -54,12 +55,14 @@ async def process_ingestion_job(*, job_id: UUID, session):
     await session.commit()
 
     path = Path(settings.upload_dir) / job.stored_filename
-    embedding_service = SentenceTransformerEmbeddingService(model_name=settings.embedding_model)
+    embedding_service = SentenceTransformerEmbeddingService(
+        model_name=settings.embedding_model
+    )
     pipeline = IngestionPipeline(session=session, embedding_service=embedding_service)
 
     async def progress_callback(
-            step: str,
-            progress: int,
+        step: str,
+        progress: int,
     ):
         await update_progress(
             job_id=job_id,
@@ -68,7 +71,11 @@ async def process_ingestion_job(*, job_id: UUID, session):
         )
 
     try:
-        logger.info("ingestion.job.started", filename=job.original_filename, attempt=job.attempts + 1)
+        logger.info(
+            "ingestion.job.started",
+            filename=job.original_filename,
+            attempt=job.attempts + 1,
+        )
         start_time = time.perf_counter()
         document: Document = None
         if job.job_type == JobType.INGESTION:
@@ -89,13 +96,19 @@ async def process_ingestion_job(*, job_id: UUID, session):
         end_time = (time.perf_counter() - start_time) * 1000
         INGESTION_JOBS_TOTAL.labels(job_type=job.job_type, status="completed").inc()
         INGESTION_DURATION_SECONDS.labels(job_type=job.job_type).observe(end_time)
-        logger.info("ingestion.job.completed", document_id=document.id, duration=round(end_time, 2))
+        logger.info(
+            "ingestion.job.completed",
+            document_id=document.id,
+            duration=round(end_time, 2),
+        )
     except PermanentIngestionError as e:
         await session.rollback()
         job = await jobs.get_job_by_id(job_id)
         if job:
             INGESTION_JOBS_TOTAL.labels(job_type=job.job_type, status="failed").inc()
-            await jobs.mark_failed(job, error_code="PERMANENT_INGESTION_ERROR", error_message=str(e))
+            await jobs.mark_failed(
+                job, error_code="PERMANENT_INGESTION_ERROR", error_message=str(e)
+            )
             await session.commit()
     except RetryableIngestionError:
         INGESTION_JOBS_TOTAL.labels(job_type=job.job_type, status="failed").inc()
@@ -105,10 +118,13 @@ async def process_ingestion_job(*, job_id: UUID, session):
         await session.rollback()
         job = await jobs.get_job_by_id(job_id)
         if job:
-            await jobs.mark_failed(job, error_code="INGESTION_ERROR", error_message=str(e))
+            await jobs.mark_failed(
+                job, error_code="INGESTION_ERROR", error_message=str(e)
+            )
             await session.commit()
-            logger.exception("ingestion.job.failed", job_id=job.id, error_message=str(e))
+            logger.exception(
+                "ingestion.job.failed", job_id=job.id, error_message=str(e)
+            )
         raise
     finally:
         structlog.contextvars.clear_contextvars()
-

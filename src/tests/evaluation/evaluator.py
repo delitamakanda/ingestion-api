@@ -12,7 +12,6 @@ from tests.evaluation.models import EvaluationCase, EvaluationResult
 
 
 class RetrievalEvaluator:
-
     def __init__(self, search_router: SearchRouter, session: AsyncSession):
         self.search_router = search_router
         self.session = session
@@ -37,26 +36,21 @@ class RetrievalEvaluator:
         return EvaluationResult(
             case_id=evaluation_case.id,
             recall_at_5=recall_at_k(
-                expected_ids=expected_chunk_ids,
-                retrieved_ids=chunk_ids,
-                k=5),
-            recall_at_10=recall_at_k(
-                expected_ids=expected_chunk_ids,
-                retrieved_ids=chunk_ids,
-                k=10),
-            precision_at_5=precision_at_k(
-                expected_ids=expected_chunk_ids,
-                retrieved_ids=chunk_ids,
-                k=5),
-            reciprocal_rank=reciprocal_rank(
-                expected_ids=expected_chunk_ids,
-                retrieved_ids=chunk_ids),
-            term_hit_rate=term_hit_rate(
-                expected_terms=evaluation_case.terms,
-                texts=texts,
-                k=5
+                expected_ids=expected_chunk_ids, retrieved_ids=chunk_ids, k=5
             ),
-            retrieved_chunks_ids=chunk_ids
+            recall_at_10=recall_at_k(
+                expected_ids=expected_chunk_ids, retrieved_ids=chunk_ids, k=10
+            ),
+            precision_at_5=precision_at_k(
+                expected_ids=expected_chunk_ids, retrieved_ids=chunk_ids, k=5
+            ),
+            reciprocal_rank=reciprocal_rank(
+                expected_ids=expected_chunk_ids, retrieved_ids=chunk_ids
+            ),
+            term_hit_rate=term_hit_rate(
+                expected_terms=evaluation_case.terms, texts=texts, k=5
+            ),
+            retrieved_chunks_ids=chunk_ids,
         )
 
     def _texts_for_evaluation(self, response: SearchResponse) -> list[str]:

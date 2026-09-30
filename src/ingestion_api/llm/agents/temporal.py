@@ -23,14 +23,13 @@ Rules:
 - If no reliable event date exists, use null.
 """
 
+
 class TemporalAgent:
     def __init__(self, llm):
         self.llm = llm
 
     async def analyze(self, *, question: str, sources) -> TemporalTimeline:
-        source_payload = [
-            source.model_dump(mode="json") for source in sources
-        ]
+        source_payload = [source.model_dump(mode="json") for source in sources]
 
         user_prompt = f"""
         QUESTION: 
@@ -40,4 +39,8 @@ class TemporalAgent:
 {json.dumps(source_payload, ensure_ascii=False, indent=2)}
         """
 
-        return await self.llm.structured(user_prompt=user_prompt, system_prompt=SYSTEM_PROMPT, schema=TemporalTimeline)
+        return await self.llm.structured(
+            user_prompt=user_prompt,
+            system_prompt=SYSTEM_PROMPT,
+            schema=TemporalTimeline,
+        )

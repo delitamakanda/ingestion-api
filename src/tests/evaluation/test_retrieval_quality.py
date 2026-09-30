@@ -21,5 +21,4 @@ async def test_retrieval_quality(search_router, db_session):
 
     avg_term_hit = sum(result.term_hit_rate for result in results) / len(results)
 
-
     assert avg_term_hit >= 0.5, "Average term hit rate is below the expected threshold."

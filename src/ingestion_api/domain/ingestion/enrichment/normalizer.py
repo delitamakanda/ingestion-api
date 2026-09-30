@@ -2,11 +2,10 @@ from ingestion_api.domain.ingestion.enrichment.models import ExtractedMetadata
 
 
 class MetadataNormalizer:
-
-    def merge(self, deterministic: ExtractedMetadata, llm_metadata) -> ExtractedMetadata:
-        result = deterministic.model_copy(
-            deep=True
-        )
+    def merge(
+        self, deterministic: ExtractedMetadata, llm_metadata
+    ) -> ExtractedMetadata:
+        result = deterministic.model_copy(deep=True)
 
         if not result.countries:
             result.countries = llm_metadata.countries

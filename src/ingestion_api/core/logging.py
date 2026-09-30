@@ -7,9 +7,7 @@ from ingestion_api.core.config import settings
 
 
 def configure_logging() -> None:
-    log_level = (
-        logging.DEBUG if settings.environment == "development" else logging.INFO
-    )
+    log_level = logging.DEBUG if settings.environment == "development" else logging.INFO
 
     logging.basicConfig(
         format="%(message)s",

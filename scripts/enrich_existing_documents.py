@@ -1,4 +1,3 @@
-
 from pathlib import Path
 
 from sqlalchemy import select
@@ -28,7 +27,13 @@ def compute_hash(file_path: Path) -> str:
 
 async def main():
     parser_registry = ParserRegistry()
-    metadata_extractor = MetadataExtractor(DeterminisiticMetadataExtractor(), LLMMetadataExtractor(OpenAILLMProvider(api_key=settings.openai_api_key, model=settings.llm_model)), MetadataNormalizer())
+    metadata_extractor = MetadataExtractor(
+        DeterminisiticMetadataExtractor(),
+        LLMMetadataExtractor(
+            OpenAILLMProvider(api_key=settings.openai_api_key, model=settings.llm_model)
+        ),
+        MetadataNormalizer(),
+    )
     upload_dir = Path(settings.upload_dir)
 
     async with AsyncSessionFactory() as session:
@@ -36,11 +41,7 @@ async def main():
 
         documents = result.scalars().all()
 
-        documents_by_hash = {
-            document.content_hash: document for document in documents
-        }
-
-
+        documents_by_hash = {document.content_hash: document for document in documents}
 
         for file_path in upload_dir.iterdir():
             if not file_path.is_file():
@@ -51,7 +52,9 @@ async def main():
 
                 document = documents_by_hash.get(content_hash)
                 if not document:
-                    print(f"No document found for file {file_path} with hash {content_hash}")
+                    print(
+                        f"No document found for file {file_path} with hash {content_hash}"
+                    )
                     continue
                 parser = parser_registry.get(file_path)
 

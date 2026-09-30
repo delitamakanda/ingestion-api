@@ -15,9 +15,9 @@ async def main():
         results = []
 
         print()
-        print("="*50)
+        print("=" * 50)
         print("Evaluating retrieval quality...")
-        print("="*50)
+        print("=" * 50)
 
         for case in cases:
             try:
@@ -30,9 +30,7 @@ async def main():
                 if case.countries:
                     print(f"Countries: {', '.join(case.countries)}")
 
-                print(
-                    f"Recall@5: {result.recall_at_5:.3f}"
-                )
+                print(f"Recall@5: {result.recall_at_5:.3f}")
                 print(f"Recall@10: {result.recall_at_10:.3f}")
                 print(f"Precision@5: {result.precision_at_5:.3f}")
                 print(f"Reciprocal Rank: {result.reciprocal_rank:.3f}")
@@ -41,8 +39,10 @@ async def main():
                 if result.retrieved_chunks_ids:
                     print("Retrieved Chunk IDs:")
 
-                    for rank, chunk_id in enumerate(result.retrieved_chunks_ids, start=1):
-                        marker = ("*" if chunk_id in case.chunks_ids else "")
+                    for rank, chunk_id in enumerate(
+                        result.retrieved_chunks_ids, start=1
+                    ):
+                        marker = "*" if chunk_id in case.chunks_ids else ""
                         print(f"Rank {rank:>2}: {chunk_id}[{marker}]")
 
             except Exception as e:  # noqa: BLE001 - continue evaluating remaining cases
@@ -57,9 +57,9 @@ async def main():
             return
 
         print()
-        print("="*50)
+        print("=" * 50)
         print("global evaluation metrics")
-        print("="*50)
+        print("=" * 50)
 
         count = len(results)
 
@@ -75,7 +75,6 @@ async def main():
         print(f"Average recall at 10: {avg_recall_10:.3f}")
         print(f"Average precision at 5: {avg_precision_5:.3f}")
         print(f"Average reciprocal rank: {avg_reciprocal_rank:.3f}")
-
 
 
 if __name__ == "__main__":

@@ -12,31 +12,22 @@ class VectorRetriever:
         self.session = session
         self.embedding_service = embedding_service
 
-    async def search(self, request: SearchRequest, session: AsyncSession, limit: int = 30) -> list[SearchResult]:
+    async def search(
+        self, request: SearchRequest, session: AsyncSession, limit: int = 30
+    ) -> list[SearchResult]:
         query_embedding = self.embedding_service.embed_query(request.query)
 
-        distance = (
-            DocumentChunk.embedding.cosine_distance(query_embedding)
-        )
+        distance = DocumentChunk.embedding.cosine_distance(query_embedding)
 
         statement = (
-            select(
-                DocumentChunk,
-                Document,
-                distance.label("distance")
-            ).join(
-                Document,
-                Document.id == DocumentChunk.document_id
-            ).where(
-                DocumentChunk.embedding.is_not(None)
-            )
+            select(DocumentChunk, Document, distance.label("distance"))
+            .join(Document, Document.id == DocumentChunk.document_id)
+            .where(DocumentChunk.embedding.is_not(None))
         )
 
         statement = apply_search_filters(statement, request)
 
-        statement = (
-            statement.order_by(distance.asc()).limit(limit)
-        )
+        statement = statement.order_by(distance.asc()).limit(limit)
 
         rows = (await session.execute(statement)).all()
 
@@ -50,7 +41,7 @@ class VectorRetriever:
                 sections=chunk.sections,
                 page_start=chunk.page_start,
                 page_end=chunk.page_end,
-                score=max(0.0, 0.1 - float(distance_value))
-
-            ) for (chunk, document, distance_value) in rows
+                score=max(0.0, 0.1 - float(distance_value)),
+            )
+            for (chunk, document, distance_value) in rows
         ]

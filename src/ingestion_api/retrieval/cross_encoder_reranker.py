@@ -13,11 +13,14 @@ from ingestion_api.retrieval.reranker import Reranker
 
 logger = get_logger(__name__)
 
+
 class CrossEncoderReranker(Reranker):
     def __init__(self, model_name: str):
         self.model = CrossEncoder(model_name)
 
-    def rerank(self, *, query: str, results: list[SearchResult], top_k: int) -> list[SearchResult]:
+    def rerank(
+        self, *, query: str, results: list[SearchResult], top_k: int
+    ) -> list[SearchResult]:
         start_time = time.perf_counter()
         if not results:
             RERANKER_REQUESTS_TOTAL.inc()
@@ -32,15 +35,17 @@ class CrossEncoderReranker(Reranker):
 
         output = []
         for result, score in ranked[:top_k]:
-            output.append(
-                result.model_copy(update={"reranker_score": float(score)})
-            )
+            output.append(result.model_copy(update={"reranker_score": float(score)}))
         RERANKER_REQUESTS_TOTAL.inc()
         RERANKER_DURATION_SECONDS.observe((time.perf_counter() - start_time) * 1000)
         RERANKER_CANDIDATES.observe(len(results))
-        logger.info("cross_encoder_reranker.rerank.completed", query=query, top_k=top_k, elapsed=(time.perf_counter() - start_time) * 1000)
+        logger.info(
+            "cross_encoder_reranker.rerank.completed",
+            query=query,
+            top_k=top_k,
+            elapsed=(time.perf_counter() - start_time) * 1000,
+        )
         return output
-
 
     @staticmethod
     def _build_passages(result: SearchResult) -> str:
@@ -50,7 +55,5 @@ class CrossEncoderReranker(Reranker):
             parts.append(f"Document: {result.filename}")
         if result.sections:
             parts.append(f"{result.sections}")
-        parts.append(
-            result.text
-        )
+        parts.append(result.text)
         return "\n\n".join(parts)

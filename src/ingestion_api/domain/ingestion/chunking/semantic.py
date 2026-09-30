@@ -1,4 +1,3 @@
-
 from ingestion_api.domain.ingestion.schemas import ChunkData, ParsedDocument
 
 
@@ -34,7 +33,13 @@ class SemanticChunker:
 
             # new section can enforce close previous chunk
             if element.type == "heading" and buffer:
-                self._flush(chunks=chunks, buffer=buffer, section=current_section, page_start=page_start, page_end=page_end)
+                self._flush(
+                    chunks=chunks,
+                    buffer=buffer,
+                    section=current_section,
+                    page_start=page_start,
+                    page_end=page_end,
+                )
                 buffer = []
                 current_size = 0
                 page_start = element_page
@@ -48,11 +53,17 @@ class SemanticChunker:
 
             projected_size = current_size + len(text)
             if projected_size > self.max_chunk_size and buffer:
-                self._flush(chunks=chunks, buffer=buffer, section=current_section, page_start=page_start, page_end=page_end)
+                self._flush(
+                    chunks=chunks,
+                    buffer=buffer,
+                    section=current_section,
+                    page_start=page_start,
+                    page_end=page_end,
+                )
 
                 overlap = self._build_overlap(buffer)
 
-                buffer = ([overlap] if overlap else [])
+                buffer = [overlap] if overlap else []
 
                 current_size = len(overlap) if overlap else 0
 
@@ -64,24 +75,39 @@ class SemanticChunker:
             current_size += len(text)
 
         if buffer:
-            self._flush(chunks=chunks, buffer=buffer, section=current_section, page_start=page_start, page_end=page_end)
+            self._flush(
+                chunks=chunks,
+                buffer=buffer,
+                section=current_section,
+                page_start=page_start,
+                page_end=page_end,
+            )
 
         return chunks
 
-
-    def _flush(self, *, chunks: list[ChunkData], buffer: list[str], section: str, page_start: int| None, page_end: int| None):
+    def _flush(
+        self,
+        *,
+        chunks: list[ChunkData],
+        buffer: list[str],
+        section: str,
+        page_start: int | None,
+        page_end: int | None,
+    ):
         chunk_content = "\n\n".join(buffer).strip()
 
         if not chunk_content:
             return
 
-        chunks.append(ChunkData(
-            text=chunk_content,
-            section=section,
-            page_start=page_start,
-            page_end=page_end,
-            chunk_index=len(chunks),
-        ))
+        chunks.append(
+            ChunkData(
+                text=chunk_content,
+                section=section,
+                page_start=page_start,
+                page_end=page_end,
+                chunk_index=len(chunks),
+            )
+        )
 
     def _build_overlap(self, buffer: list[str]) -> str:
         """
@@ -93,5 +119,4 @@ class SemanticChunker:
         previous = "\n\n".join(buffer)
         if len(previous) <= self.overlap_chars:
             return previous
-        return previous[-self.overlap_chars:]
-
+        return previous[-self.overlap_chars :]

@@ -22,17 +22,31 @@ from ingestion_api.retrieval.hybrid import HybridRetriever
 
 
 class NaturalLanguageSearchStrategy(SearchStrategy):
-
-    def __init__(self, query_planner: QueryPlannerAgent, hybrid_retriever: HybridRetriever,
-                 synthesis_agent: SynthesisAgent, temporal_agent: TemporalAgent):
+    def __init__(
+        self,
+        query_planner: QueryPlannerAgent,
+        hybrid_retriever: HybridRetriever,
+        synthesis_agent: SynthesisAgent,
+        temporal_agent: TemporalAgent,
+    ):
         self.query_planner = query_planner
         self.hybrid_retriever = hybrid_retriever
         self.synthesis_agent = synthesis_agent
         self.temporal_agent = temporal_agent
 
-    async def search(self, request: SearchRequest, session: AsyncSession) -> SearchResponse:
-        regulation_service = RegulationService(session, web_parser=WebParser(),
-                                               pipeline=IngestionPipeline(session, SentenceTransformerEmbeddingService(model_name=settings.embedding_model)))
+    async def search(
+        self, request: SearchRequest, session: AsyncSession
+    ) -> SearchResponse:
+        regulation_service = RegulationService(
+            session,
+            web_parser=WebParser(),
+            pipeline=IngestionPipeline(
+                session,
+                SentenceTransformerEmbeddingService(
+                    model_name=settings.embedding_model
+                ),
+            ),
+        )
         if request.regulation_urls:
             await regulation_service.enrich_regulation(request.regulation_urls)
 
@@ -40,27 +54,30 @@ class NaturalLanguageSearchStrategy(SearchStrategy):
 
         timeline = None
 
-        results = await self.hybrid_retriever.search_plan(plan, session=session, limit=request.limit)
+        results = await self.hybrid_retriever.search_plan(
+            plan, session=session, limit=request.limit
+        )
         sources = self._build_sources(results)
 
         if plan.requires_temporal_analysis:
-            timeline = (
-                await self.temporal_agent.analyze(question=request.query, sources=sources)
+            timeline = await self.temporal_agent.analyze(
+                question=request.query, sources=sources
             )
-        generated = (
-            await self.synthesis_agent.synthesize(
-                question=request.query,
-                sources=sources,
-                timeline=timeline
-            )
+        generated = await self.synthesis_agent.synthesize(
+            question=request.query, sources=sources, timeline=timeline
         )
-        return SearchResponse(query=request.query, mode=request.mode, total=len(results), sources=sources,
-                              answer=NaturalLanguageAnswerResponse(
-                                  summary=generated.summary,
-                                  claims=generated.claims,
-                                  insufficient_information=generated.insufficient_information
-                              ), results=[])
-
+        return SearchResponse(
+            query=request.query,
+            mode=request.mode,
+            total=len(results),
+            sources=sources,
+            answer=NaturalLanguageAnswerResponse(
+                summary=generated.summary,
+                claims=generated.claims,
+                insufficient_information=generated.insufficient_information,
+            ),
+            results=[],
+        )
 
     def _build_sources(self, results: list[SearchResult]) -> list[CitationSource]:
         return [
@@ -72,5 +89,6 @@ class NaturalLanguageSearchStrategy(SearchStrategy):
                 page_end=result.page_end,
                 section=result.sections,
                 excerpt=result.text[:200],  # Limit excerpt to first 200 characters
-            ) for index, result in enumerate(results, start=1)
+            )
+            for index, result in enumerate(results, start=1)
         ]

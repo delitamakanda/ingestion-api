@@ -9,6 +9,7 @@ class SourceType(StrEnum):
     TECHNICAL_REPORT = "technical_report"
     OTHER = "other"
 
+
 SOURCE_WEIGHTS = {
     SourceType.PRIMARY_REGULATION: 1.0,
     SourceType.REGULATORY_GUIDANCE: 0.9,

@@ -22,6 +22,7 @@ async def db_session():
 async def search_router(db_session):
     return get_search_router(session=db_session)
 
+
 @pytest_asyncio.fixture
 async def client():
     from fastapi.testclient import TestClient

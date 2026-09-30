@@ -17,21 +17,33 @@ class SearchIntent(StrEnum):
 class SearchPlan(BaseModel):
     intent: SearchIntent = Field(..., description="The intent of the search")
 
-    queries: list[str] = Field(min_length=1, max_length=10, description="The list of queries to search for")
+    queries: list[str] = Field(
+        min_length=1, max_length=10, description="The list of queries to search for"
+    )
 
-    countries: list[str] = Field(default_factory=list, description="The list of countries to search in")
+    countries: list[str] = Field(
+        default_factory=list, description="The list of countries to search in"
+    )
 
-    topics: list[str] = Field(default_factory=list, description="The list of topics to search for")
+    topics: list[str] = Field(
+        default_factory=list, description="The list of topics to search for"
+    )
 
-    legal_references: list[str] = Field(default_factory=list, description="The list of legal references to search for")
+    legal_references: list[str] = Field(
+        default_factory=list, description="The list of legal references to search for"
+    )
 
-    requires_temporal_analysis: bool = Field(default=False, description="Whether temporal analysis is required")
+    requires_temporal_analysis: bool = Field(
+        default=False, description="Whether temporal analysis is required"
+    )
 
     start_date: date | None = Field(None, description="The start date of the search")
 
     end_date: date | None = Field(None, description="The end date of the search")
 
-    preferred_sources: list[SourceType] = Field(default_factory=list, description="The list of preferred sources")
+    preferred_sources: list[SourceType] = Field(
+        default_factory=list, description="The list of preferred sources"
+    )
 
 
 class AnswerClaim(BaseModel):
@@ -41,8 +53,13 @@ class AnswerClaim(BaseModel):
 
 class GeneratedAnswer(BaseModel):
     summary: str = Field(..., description="The summary of the answer")
-    claims: list[AnswerClaim] = Field(default_factory=list, description="The list of citations in the answer")
-    insufficient_information: bool = Field(default=False, description="Whether the answer is insufficient information")
+    claims: list[AnswerClaim] = Field(
+        default_factory=list, description="The list of citations in the answer"
+    )
+    insufficient_information: bool = Field(
+        default=False, description="Whether the answer is insufficient information"
+    )
+
 
 class TemporalEvidence(BaseModel):
     source_id: str = Field(..., description="The ID of the source")
@@ -54,4 +71,6 @@ class TemporalEvidence(BaseModel):
 
 
 class TemporalTimeline(BaseModel):
-    events: list[TemporalEvidence] = Field(default_factory=list, description="The list of temporal events")
+    events: list[TemporalEvidence] = Field(
+        default_factory=list, description="The list of temporal events"
+    )

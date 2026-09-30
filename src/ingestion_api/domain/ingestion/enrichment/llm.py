@@ -46,6 +46,7 @@ Rules:
 - Do not invent dates.
 """
 
+
 class LLMMetadataExtractor:
     def __init__(self, llm):
         self.llm = llm
@@ -56,7 +57,7 @@ class LLMMetadataExtractor:
         return await self.llm.structured(
             system_prompt=SYSTEM_PROMPT,
             user_prompt=content,
-            schema=LLMExtractedMetadata
+            schema=LLMExtractedMetadata,
         )
 
     def _build_context(self, document) -> str:
@@ -65,15 +66,11 @@ class LLMMetadataExtractor:
             f"Title: {document.title}",
         ]
 
-        for element in (
-            document.elements[:40]
-        ):
+        for element in document.elements[:40]:
             parts.append(element.content)
 
         if len(document.elements) > 40:
-            parts.append(
-                "\n---- DOCUMENT END ----\n"
-            )
+            parts.append("\n---- DOCUMENT END ----\n")
             for element in document.elements[-15:]:
                 parts.append(element.content)
         return "\n".join(parts)

@@ -72,7 +72,9 @@ class DeterminisiticMetadataExtractor:
     A deterministic metadata extractor that uses regex patterns to extract metadata from a document.
     """
 
-    async def extract_metadata(self, parsed_document: ParsedDocument) -> ExtractedMetadata:
+    async def extract_metadata(
+        self, parsed_document: ParsedDocument
+    ) -> ExtractedMetadata:
         """
         Extracts metadata from the given parsed document.
 
@@ -83,25 +85,29 @@ class DeterminisiticMetadataExtractor:
         metadata = ExtractedMetadata()
 
         # Extract country from the document text
-        metadata.countries = (
-            self._extract_countries(text)
-        )
+        metadata.countries = self._extract_countries(text)
 
         if metadata.countries:
-            metadata.confidence.countries = 0.9  # High confidence for deterministic extraction
-        metadata.legal_references = (
-            extract_legal_references(text)
-        )
+            metadata.confidence.countries = (
+                0.9  # High confidence for deterministic extraction
+            )
+        metadata.legal_references = extract_legal_references(text)
         if metadata.legal_references:
-            metadata.confidence.legal_references = 0.9  # High confidence for deterministic extraction
+            metadata.confidence.legal_references = (
+                0.9  # High confidence for deterministic extraction
+            )
 
         metadata.language = self._guess_language(text)
         if metadata.language:
-            metadata.confidence.language = 0.9  # High confidence for deterministic extraction
+            metadata.confidence.language = (
+                0.9  # High confidence for deterministic extraction
+            )
 
         metadata.publication_date = self._extract_publication_date(text)
         if metadata.publication_date:
-            metadata.confidence.publication_date = 0.9  # High confidence for deterministic extraction
+            metadata.confidence.publication_date = (
+                0.9  # High confidence for deterministic extraction
+            )
 
         return metadata
 
@@ -132,7 +138,9 @@ class DeterminisiticMetadataExtractor:
             parsed_document.title or "",
             parsed_document.filename or "",
         ]
-        for element in parsed_document.elements[:10]:  # Limit to the first 10 elements for performance
+        for element in parsed_document.elements[
+            :10
+        ]:  # Limit to the first 10 elements for performance
             parts.append(element.content or "")
         return "\n".join(parts)
 

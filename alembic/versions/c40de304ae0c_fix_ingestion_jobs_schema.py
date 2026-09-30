@@ -5,6 +5,7 @@ Revises: 4c2d6a1154b6
 Create Date: 2026-09-21 00:00:22.275175
 
 """
+
 from collections.abc import Sequence
 
 import sqlalchemy as sa
@@ -13,8 +14,8 @@ from sqlalchemy.dialects import postgresql
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = 'c40de304ae0c'
-down_revision: str | Sequence[str] | None = '4c2d6a1154b6'
+revision: str = "c40de304ae0c"
+down_revision: str | Sequence[str] | None = "4c2d6a1154b6"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
@@ -22,23 +23,25 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     """Upgrade schema."""
     op.add_column(
-        'ingestion_jobs',
-        sa.Column('document_id', postgresql.UUID(as_uuid=True), nullable=True, index=True)
+        "ingestion_jobs",
+        sa.Column(
+            "document_id", postgresql.UUID(as_uuid=True), nullable=True, index=True
+        ),
     )
 
     op.create_foreign_key(
-        'fk_ingestion_jobs_document_id_documents',
-        'ingestion_jobs', 'documents',
-        ['document_id'], ['id'],
-        ondelete='SET NULL'
+        "fk_ingestion_jobs_document_id_documents",
+        "ingestion_jobs",
+        "documents",
+        ["document_id"],
+        ["id"],
+        ondelete="SET NULL",
     )
 
 
 def downgrade() -> None:
     """Downgrade schema."""
     op.drop_constraint(
-        'fk_ingestion_jobs_document_id_documents',
-        'ingestion_jobs',
-        type_='foreignkey'
+        "fk_ingestion_jobs_document_id_documents", "ingestion_jobs", type_="foreignkey"
     )
-    op.drop_column('ingestion_jobs', 'document_id')
+    op.drop_column("ingestion_jobs", "document_id")

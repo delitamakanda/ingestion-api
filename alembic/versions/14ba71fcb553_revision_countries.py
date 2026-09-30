@@ -5,6 +5,7 @@ Revises: 012f1e3e4e87
 Create Date: 2026-09-05 18:09:54.919036
 
 """
+
 from collections.abc import Sequence
 
 import sqlalchemy as sa
@@ -13,8 +14,8 @@ from sqlalchemy.dialects import postgresql
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = '14ba71fcb553'
-down_revision: str | Sequence[str] | None = '012f1e3e4e87'
+revision: str = "14ba71fcb553"
+down_revision: str | Sequence[str] | None = "012f1e3e4e87"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

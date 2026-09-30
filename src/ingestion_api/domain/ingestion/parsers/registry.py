@@ -7,7 +7,6 @@ from ingestion_api.domain.ingestion.parsers.pdf import PdfParser
 
 
 class ParserRegistry:
-
     def __init__(self):
         self.parsers: list[DocumentParser] = [DocxParser(), PdfParser(), HtmlParser()]
 

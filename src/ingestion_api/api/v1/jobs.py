@@ -13,11 +13,9 @@ from ingestion_api.workers.broker import ArqJobBroker
 broker = ArqJobBroker()
 
 
-router = APIRouter(
-    prefix="/jobs",
-    tags=["jobs"]
-)
+router = APIRouter(prefix="/jobs", tags=["jobs"])
 DatabaseSession = Annotated[AsyncSession, Depends(get_db)]
+
 
 @router.get("/{job_id}", response_model=JobResponse)
 async def get_job(job_id: UUID, session: DatabaseSession):
@@ -25,9 +23,12 @@ async def get_job(job_id: UUID, session: DatabaseSession):
     job = await job_repository.get_job_by_id(job_id)
 
     if not job:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Job not found"
+        )
 
     return job
+
 
 @router.get("/", response_model=list[JobResponse])
 async def list_jobs(session: DatabaseSession, status: JobStatus | None = None):
@@ -41,10 +42,15 @@ async def retry_job(job_id: UUID, session: DatabaseSession):
     job = await job_repository.get_job_by_id(job_id)
 
     if not job:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Job not found"
+        )
 
     if job.status != JobStatus.FAILED:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only failed jobs can be retried")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only failed jobs can be retried",
+        )
 
     job.status = JobStatus.PENDING
     job.finished_at = None

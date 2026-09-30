@@ -5,6 +5,7 @@ Revises: 28810b81378d
 Create Date: 2026-09-13 23:03:48.843926
 
 """
+
 from collections.abc import Sequence
 
 import sqlalchemy as sa
@@ -13,8 +14,8 @@ from sqlalchemy.dialects import postgresql
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = 'aa132f5272b6'
-down_revision: str | Sequence[str] | None = '28810b81378d'
+revision: str = "aa132f5272b6"
+down_revision: str | Sequence[str] | None = "28810b81378d"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

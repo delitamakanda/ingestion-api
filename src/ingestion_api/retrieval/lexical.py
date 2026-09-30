@@ -10,20 +10,14 @@ class LexicalRetriever:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def fuzzy_text_search(self, request: SearchRequest, session: AsyncSession) -> list[SearchResult]:
-        trigram_similar_query = func.similarity(
-            DocumentChunk.text, request.query)
+    async def fuzzy_text_search(
+        self, request: SearchRequest, session: AsyncSession
+    ) -> list[SearchResult]:
+        trigram_similar_query = func.similarity(DocumentChunk.text, request.query)
         statement = (
-            select(
-                DocumentChunk,
-                Document,
-                trigram_similar_query.label("score")
-            ).join(
-                Document,
-                Document.id == DocumentChunk.document_id
-            ).where(
-            trigram_similar_query is not None
-            )
+            select(DocumentChunk, Document, trigram_similar_query.label("score"))
+            .join(Document, Document.id == DocumentChunk.document_id)
+            .where(trigram_similar_query is not None)
         )
 
         statement = apply_search_filters(statement, request)
@@ -31,25 +25,19 @@ class LexicalRetriever:
         statement = statement.limit(request.limit)
         result = await session.execute(statement)
         return [
-            self._to_result(chunk, document, float(score_value)) for chunk, document, score_value in result.all()
+            self._to_result(chunk, document, float(score_value))
+            for chunk, document, score_value in result.all()
         ]
 
-    async def keyword_search(self, request: SearchRequest, session: AsyncSession) -> list[SearchResult]:
+    async def keyword_search(
+        self, request: SearchRequest, session: AsyncSession
+    ) -> list[SearchResult]:
         ts_query = func.websearch_to_tsquery("simple", request.query)
-        score = func.ts_rank_cd(
-            DocumentChunk.search_vector, ts_query
-        )
+        score = func.ts_rank_cd(DocumentChunk.search_vector, ts_query)
         statement = (
-            select(
-                DocumentChunk,
-                Document,
-                score.label("score")
-            ).join(
-                Document,
-                Document.id == DocumentChunk.document_id
-            ).where(
-                DocumentChunk.search_vector.op("@@")(ts_query)
-            )
+            select(DocumentChunk, Document, score.label("score"))
+            .join(Document, Document.id == DocumentChunk.document_id)
+            .where(DocumentChunk.search_vector.op("@@")(ts_query))
         )
 
         statement = apply_search_filters(statement, request)
@@ -58,25 +46,19 @@ class LexicalRetriever:
         result = await session.execute(statement)
         # print("Keyword search results:", result.all())
         return [
-            self._to_result(chunk, document, float(score_value)) for chunk, document, score_value in result.all()
+            self._to_result(chunk, document, float(score_value))
+            for chunk, document, score_value in result.all()
         ]
 
-    async def text_search(self, request: SearchRequest, session: AsyncSession) -> list[SearchResult]:
+    async def text_search(
+        self, request: SearchRequest, session: AsyncSession
+    ) -> list[SearchResult]:
         ts_query = func.phraseto_tsquery("simple", request.query)
-        score = func.ts_rank_cd(
-            DocumentChunk.search_vector, ts_query
-        )
+        score = func.ts_rank_cd(DocumentChunk.search_vector, ts_query)
         statement = (
-            select(
-                DocumentChunk,
-                Document,
-                score.label("score")
-            ).join(
-                Document,
-                Document.id == DocumentChunk.document_id
-            ).where(
-                DocumentChunk.search_vector.op("@@")(ts_query)
-            )
+            select(DocumentChunk, Document, score.label("score"))
+            .join(Document, Document.id == DocumentChunk.document_id)
+            .where(DocumentChunk.search_vector.op("@@")(ts_query))
         )
 
         statement = apply_search_filters(statement, request)
@@ -85,10 +67,13 @@ class LexicalRetriever:
         result = await session.execute(statement)
         # print("Text search results:", result.all())
         return [
-            self._to_result(chunk, document, float(score_value)) for chunk, document, score_value in result.all()
+            self._to_result(chunk, document, float(score_value))
+            for chunk, document, score_value in result.all()
         ]
 
-    def _to_result(self, chunk: DocumentChunk, document: Document, score: float) -> SearchResult:
+    def _to_result(
+        self, chunk: DocumentChunk, document: Document, score: float
+    ) -> SearchResult:
         return SearchResult(
             document_id=str(document.id),
             chunk_id=str(chunk.id),

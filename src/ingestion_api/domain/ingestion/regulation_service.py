@@ -9,7 +9,6 @@ from ingestion_api.domain.ingestion.pipeline import IngestionPipeline
 
 
 class RegulationService:
-
     def __init__(self, session, web_parser: WebParser, pipeline: IngestionPipeline):
         self.session = session
         self.web_parser = web_parser
@@ -32,7 +31,9 @@ class RegulationService:
 
     async def _ingest_url(self, url: str):
         normalized_url = self._normalized_url(url)
-        existing_document = await self.pipeline.document_repository.get_by_source_url(normalized_url)
+        existing_document = await self.pipeline.document_repository.get_by_source_url(
+            normalized_url
+        )
         if existing_document:
             return existing_document
 
@@ -59,7 +60,7 @@ class RegulationService:
 
         extension = self._resolve_extension(
             url=normalized_url,
-            content_type=response.headers.get("Content-Type", "").lower()
+            content_type=response.headers.get("Content-Type", "").lower(),
         )
         with NamedTemporaryFile(suffix=extension, delete=False) as temp_file:
             temp_file.write(content.encode("utf-8"))
@@ -67,10 +68,17 @@ class RegulationService:
 
         try:
             import hashlib
-            content_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
-            document = await self.pipeline.ingest(file_path=temp_file_path, content_hash=content_hash,original_filename=self._build_filename(normalized_url, extension))
 
-            await self.pipeline.document_repository.attach_source_url(document.id, normalized_url)
+            content_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
+            document = await self.pipeline.ingest(
+                file_path=temp_file_path,
+                content_hash=content_hash,
+                original_filename=self._build_filename(normalized_url, extension),
+            )
+
+            await self.pipeline.document_repository.attach_source_url(
+                document.id, normalized_url
+            )
 
             return document
         finally:

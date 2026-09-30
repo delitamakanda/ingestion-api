@@ -27,9 +27,11 @@ from ingestion_api.retrieval.vector import VectorRetriever
 
 DatabaseSession = Annotated[AsyncSession, Depends(get_db)]
 
+
 @lru_cache
 def get_embedding_service():
     return SentenceTransformerEmbeddingService(model_name=settings.embedding_model)
+
 
 @lru_cache
 def get_llm_provider():
@@ -37,11 +39,11 @@ def get_llm_provider():
 
 
 def get_search_router(
-        session: DatabaseSession,
-    ):
+    session: DatabaseSession,
+):
     retriever = LexicalRetriever(session)
 
-    embedding_service = (get_embedding_service())
+    embedding_service = get_embedding_service()
 
     vector = VectorRetriever(session, embedding_service=embedding_service)
 
@@ -50,7 +52,9 @@ def get_search_router(
         if settings.reranker_model.strip()
         else None
     )
-    hybrid = HybridRetriever(lexical_retriever=retriever, vector_retriever=vector, reranker=reranker)
+    hybrid = HybridRetriever(
+        lexical_retriever=retriever, vector_retriever=vector, reranker=reranker
+    )
 
     llm_provider = get_llm_provider()
 
@@ -63,19 +67,24 @@ def get_search_router(
     return SearchRouter(
         keyword_strategy=KeywordSearchStrategy(retriever),
         text_strategy=TextSearchStrategy(retriever),
-        natural_language_strategy=NaturalLanguageSearchStrategy(query_planner,hybrid,synthesize_agent, temporal_agent)
+        natural_language_strategy=NaturalLanguageSearchStrategy(
+            query_planner, hybrid, synthesize_agent, temporal_agent
+        ),
     )
+
 
 SearchRouterDependency = Annotated[SearchRouter, Depends(get_search_router)]
 
 router = APIRouter(
     prefix="/search",
-    tags=["search"],)
+    tags=["search"],
+)
+
 
 @router.post("", response_model=SearchResponse)
 async def search(
-        request: SearchRequest,
-        search_router: SearchRouterDependency,
-        session: DatabaseSession
+    request: SearchRequest,
+    search_router: SearchRouterDependency,
+    session: DatabaseSession,
 ):
     return await search_router.search(request, session)

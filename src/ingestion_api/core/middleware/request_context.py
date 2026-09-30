@@ -33,26 +33,30 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
         try:
             response = await call_next(request)
 
-            duration = (time.perf_counter() - start_time) * 1000  # Convert to milliseconds
+            duration = (
+                time.perf_counter() - start_time
+            ) * 1000  # Convert to milliseconds
 
             logger.info(
                 "http.request.end",
                 method=request.method,
                 path=request.url.path,
                 status_code=response.status_code,
-                duration=round(duration, 2)
+                duration=round(duration, 2),
             )
 
             response.headers["X-Request-ID"] = request_id
 
             return response
         except Exception:
-            duration_ms = (time.perf_counter() - start_time) * 1000  # Convert to milliseconds
+            duration_ms = (
+                time.perf_counter() - start_time
+            ) * 1000  # Convert to milliseconds
             logger.exception(
                 "http.request.exception",
                 method=request.method,
                 path=request.url.path,
-                duration=round(duration_ms, 2)
+                duration=round(duration_ms, 2),
             )
             raise
         finally:

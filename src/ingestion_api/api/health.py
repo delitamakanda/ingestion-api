@@ -12,10 +12,9 @@ from ingestion_api.core.health import (
     check_redis_health,
 )
 
-router = APIRouter(
-    tags=["health"]
-)
+router = APIRouter(tags=["health"])
 DatabaseSession = Annotated[AsyncSession, Depends(get_db)]
+
 
 @router.get("/health", response_model=HealthResponse)
 async def health() -> HealthResponse:
@@ -23,6 +22,7 @@ async def health() -> HealthResponse:
     Health check endpoint.
     """
     return HealthResponse(status=HealthStatus.HEALTHY)
+
 
 @router.get("/ready", response_model=ReadinessResponse)
 async def readiness(response: Response, db: DatabaseSession) -> ReadinessResponse:
@@ -42,4 +42,7 @@ async def readiness(response: Response, db: DatabaseSession) -> ReadinessRespons
     if not ready:
         response.status_code = status.HTTP_503_SERVICE_UNAVAILABLE
 
-    return ReadinessResponse(status=HealthStatus.UNAVAILABLE if not ready else HealthStatus.HEALTHY, dependencies=dependencies)
+    return ReadinessResponse(
+        status=HealthStatus.UNAVAILABLE if not ready else HealthStatus.HEALTHY,
+        dependencies=dependencies,
+    )

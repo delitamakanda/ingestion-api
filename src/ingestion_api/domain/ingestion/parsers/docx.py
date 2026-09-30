@@ -9,7 +9,6 @@ from ingestion_api.domain.ingestion.schemas import DocumentElement, ParsedDocume
 
 
 class DocxParser(DocumentParser):
-
     async def parse(self, file_path: Path) -> ParsedDocument:
         document = Document(file_path)
         elements: list[DocumentElement] = []
@@ -25,17 +24,13 @@ class DocxParser(DocumentParser):
                 if not text:
                     continue
 
-                style_name = (
-                    element.style.name if element.style else ""
-                )
+                style_name = element.style.name if element.style else ""
                 if style_name.startswith("Title "):
                     element_type = "title"
                     level = 0
                 elif style_name.startswith("Heading "):
                     element_type = "heading"
-                    level = self._heading_level(
-                        style_name
-                    )
+                    level = self._heading_level(style_name)
                     current_section = text
                 else:
                     element_type = "paragraph"
@@ -46,7 +41,8 @@ class DocxParser(DocumentParser):
                         type=element_type,
                         content=text,
                         section=current_section,
-                        level=level)
+                        level=level,
+                    )
                 )
             elif isinstance(element, Table):
                 table_content, rows = self._table_to_data(element)
@@ -54,9 +50,18 @@ class DocxParser(DocumentParser):
                 if not table_content:
                     continue
 
-                elements.append(DocumentElement(type="table", content=table_content, section=current_section, metadata={"rows": rows}))
+                elements.append(
+                    DocumentElement(
+                        type="table",
+                        content=table_content,
+                        section=current_section,
+                        metadata={"rows": rows},
+                    )
+                )
 
-        return ParsedDocument(elements=elements, filename=file_path.name, title=title, metadata={})
+        return ParsedDocument(
+            elements=elements, filename=file_path.name, title=title, metadata={}
+        )
 
     @staticmethod
     def _heading_level(style_name: str) -> int:
@@ -70,7 +75,6 @@ class DocxParser(DocumentParser):
             if any(cells):
                 rows.append(" | ".join(cells))
         return "\n".join(rows)
-
 
     @staticmethod
     def _table_to_data(table: Table) -> tuple[str, list[list[str]]]:

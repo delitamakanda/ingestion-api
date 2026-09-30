@@ -5,11 +5,12 @@ Revises: efe3785a8f03
 Create Date: 2026-09-05 15:15:10.518667
 
 """
+
 from collections.abc import Sequence
 
 # revision identifiers, used by Alembic.
-revision: str = '0ab42a1b2164'
-down_revision: str | Sequence[str] | None = 'efe3785a8f03'
+revision: str = "0ab42a1b2164"
+down_revision: str | Sequence[str] | None = "efe3785a8f03"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

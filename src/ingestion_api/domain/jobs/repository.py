@@ -12,7 +12,14 @@ class JobRepository:
     def __init__(self, session: AsyncSession):
         self.session = session
 
-    async def create_job(self, *, original_filename: str, stored_filename: str, content_hash: str, job_type: JobType = JobType.INGESTION) -> IngestionJob:
+    async def create_job(
+        self,
+        *,
+        original_filename: str,
+        stored_filename: str,
+        content_hash: str,
+        job_type: JobType = JobType.INGESTION,
+    ) -> IngestionJob:
         job = IngestionJob(
             original_filename=original_filename,
             stored_filename=stored_filename,
@@ -37,14 +44,19 @@ class JobRepository:
             JobStatus.ENRICHING,
             JobStatus.EMBEDDING,
             JobStatus.CHUNKING,
-            JobStatus.INDEXING
+            JobStatus.INDEXING,
         ]
-        stmt = select(IngestionJob).where(IngestionJob.content_hash == content_hash, IngestionJob.status.in_(
-            [status.value for status in active_statuses]
-        )).order_by(IngestionJob.started_at.desc()).limit(1)
+        stmt = (
+            select(IngestionJob)
+            .where(
+                IngestionJob.content_hash == content_hash,
+                IngestionJob.status.in_([status.value for status in active_statuses]),
+            )
+            .order_by(IngestionJob.started_at.desc())
+            .limit(1)
+        )
         result = await self.session.execute(stmt)
         return result.scalar_one_or_none()
-
 
     async def mark_started(self, job: IngestionJob) -> None:
 
@@ -55,7 +67,9 @@ class JobRepository:
         job.finished_at = None
         await self.session.flush()
 
-    async def update_job_status(self, job: IngestionJob, *, step: ProcessingStep, progress: int):
+    async def update_job_status(
+        self, job: IngestionJob, *, step: ProcessingStep, progress: int
+    ):
         job.status = step.value
         job.current_step = step.value
         job.progress = progress
@@ -73,7 +87,9 @@ class JobRepository:
         job.error_message = None
         await self.session.flush()
 
-    async def mark_failed(self, job: IngestionJob, *, error_code: str, error_message: str) -> None:
+    async def mark_failed(
+        self, job: IngestionJob, *, error_code: str, error_message: str
+    ) -> None:
         job.status = JobStatus.FAILED
         job.error_code = error_code
         job.error_message = error_message
@@ -86,11 +102,10 @@ class JobRepository:
             JobStatus.ENRICHING.value,
             JobStatus.EMBEDDING.value,
             JobStatus.CHUNKING.value,
-            JobStatus.INDEXING.value
+            JobStatus.INDEXING.value,
         ]
         stmt = select(IngestionJob).where(
-            IngestionJob.status.in_(active),
-            IngestionJob.updated_at < before
+            IngestionJob.status.in_(active), IngestionJob.updated_at < before
         )
         result = await self.session.execute(stmt)
         return list(result.scalars().all())

@@ -14,9 +14,7 @@ class PdfParser(DocumentParser):
         with pymupdf.open(file_path) as document:
             metadata = document.metadata or {}
 
-            raw_title = (
-                metadata.get("Title") or ""
-            ).strip()
+            raw_title = (metadata.get("Title") or "").strip()
 
             if not raw_title or self._looks_like_uuid(raw_title):
                 title = file_path.stem
@@ -45,16 +43,11 @@ class PdfParser(DocumentParser):
                             section=None,
                             content=text,
                             page=page_number,
-                            metadata={"bbox": [
-                                block[0], block[1], block[2], block[3]
-                            ]}
+                            metadata={"bbox": [block[0], block[1], block[2], block[3]]},
                         )
                     )
         return ParsedDocument(
-            title=title,
-            elements=elements,
-            filename=file_path.name,
-            metadata=metadata
+            title=title, elements=elements, filename=file_path.name, metadata=metadata
         )
 
     def supports(self, extension: str) -> bool:

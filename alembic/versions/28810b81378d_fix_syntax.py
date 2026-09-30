@@ -5,11 +5,12 @@ Revises: a4b10404324d
 Create Date: 2026-09-08 00:14:38.739564
 
 """
+
 from collections.abc import Sequence
 
 # revision identifiers, used by Alembic.
-revision: str = '28810b81378d'
-down_revision: str | Sequence[str] | None = 'a4b10404324d'
+revision: str = "28810b81378d"
+down_revision: str | Sequence[str] | None = "a4b10404324d"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

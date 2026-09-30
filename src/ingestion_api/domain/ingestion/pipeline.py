@@ -23,16 +23,30 @@ ProgressCallback = Callable[[str, int], Awaitable[None]]
 
 
 class IngestionPipeline:
-
     def __init__(self, session: AsyncSession, embedding_service: EmbeddingService):
         self.session = session
         self.embedding_service = embedding_service
         self.document_repository = DocumentRepository(session)
         self.parser_registry = ParserRegistry()
         self.chunker = SemanticChunker()
-        self.metadata_extractor = MetadataExtractor(DeterminisiticMetadataExtractor(), LLMMetadataExtractor(OpenAILLMProvider(api_key=settings.openai_api_key, model=settings.llm_model)), MetadataNormalizer())
+        self.metadata_extractor = MetadataExtractor(
+            DeterminisiticMetadataExtractor(),
+            LLMMetadataExtractor(
+                OpenAILLMProvider(
+                    api_key=settings.openai_api_key, model=settings.llm_model
+                )
+            ),
+            MetadataNormalizer(),
+        )
 
-    async def ingest(self, *, file_path: Path, content_hash: str, original_filename: str, on_progress: ProgressCallback | None = None):
+    async def ingest(
+        self,
+        *,
+        file_path: Path,
+        content_hash: str,
+        original_filename: str,
+        on_progress: ProgressCallback | None = None,
+    ):
         existing_document = await self.document_repository.get_by_hash(content_hash)
 
         if existing_document:
@@ -47,16 +61,13 @@ class IngestionPipeline:
         await self._progress(on_progress, "enriching", 30)
 
         try:
-
-            document = (
-                await self.document_repository.create_document(
-                    filename=original_filename,
-                    stored_filename=file_path.name,
-                    content_hash=content_hash,
-                    title=parsed_document.title,
-                    document_type=file_path.suffix.lower().lstrip("."),
-                    publication_date=datetime.now(UTC).strftime("%Y-%m-%d")
-                )
+            document = await self.document_repository.create_document(
+                filename=original_filename,
+                stored_filename=file_path.name,
+                content_hash=content_hash,
+                title=parsed_document.title,
+                document_type=file_path.suffix.lower().lstrip("."),
+                publication_date=datetime.now(UTC).strftime("%Y-%m-%d"),
             )
 
             metadata = await self.metadata_extractor.extract_metadata(parsed_document)
@@ -67,10 +78,8 @@ class IngestionPipeline:
 
             await self._progress(on_progress, "embedding", 65)
 
-            embeddings = (
-                self.embedding_service.embed_documents([
-                    self._prepare_chunk_text(chunk, metadata) for chunk in chunks
-                ])
+            embeddings = self.embedding_service.embed_documents(
+                [self._prepare_chunk_text(chunk, metadata) for chunk in chunks]
             )
 
             await self._progress(on_progress, "indexing", 90)
@@ -78,23 +87,31 @@ class IngestionPipeline:
             await self.document_repository.update_metadata(document, metadata)
 
             for chunk in chunks:
-                chunk.metadata.update({
-                    "countries": metadata.countries,
-                    "source_type": metadata.source_type,
-                    "authority": metadata.authority,
-                    "legal_references": metadata.legal_references,
-                    "publication_date": metadata.publication_date.isoformat() if metadata.publication_date else None,
-                    "effective_date": metadata.effective_date.isoformat() if metadata.effective_date else None,
-                })
+                chunk.metadata.update(
+                    {
+                        "countries": metadata.countries,
+                        "source_type": metadata.source_type,
+                        "authority": metadata.authority,
+                        "legal_references": metadata.legal_references,
+                        "publication_date": metadata.publication_date.isoformat()
+                        if metadata.publication_date
+                        else None,
+                        "effective_date": metadata.effective_date.isoformat()
+                        if metadata.effective_date
+                        else None,
+                    }
+                )
 
-            await self.document_repository.replace_chuncks(document_id=document.id, chunks=chunks, embeddings=embeddings)
+            await self.document_repository.replace_chuncks(
+                document_id=document.id, chunks=chunks, embeddings=embeddings
+            )
             await self.document_repository.update_processing_version(
                 document=document,
                 processing_version=settings.processing_version,
                 parser_version=settings.parser_version,
                 chunking_version=settings.chunking_version,
                 metadata_version=settings.metadata_version,
-                embedding_model=settings.embedding_model
+                embedding_model=settings.embedding_model,
             )
             await self.document_repository.mark_ready(document=document)
             await self.session.commit()
@@ -118,11 +135,15 @@ class IngestionPipeline:
         parts.append(chunk.text)
         return "\n\n".join(parts)
 
-    async def _progress(self, callback: ProgressCallback | None, step: str, progress: int):
+    async def _progress(
+        self, callback: ProgressCallback | None, step: str, progress: int
+    ):
         if callback is not None:
             await callback(step, progress)
 
-    async def reindex(self, *, file_path: Path, on_progress: ProgressCallback | None = None):
+    async def reindex(
+        self, *, file_path: Path, on_progress: ProgressCallback | None = None
+    ):
         parser = self.parser_registry.get(file_path)
 
         await self._progress(on_progress, "parsing", 10)
@@ -139,32 +160,40 @@ class IngestionPipeline:
 
         await self._progress(on_progress, "embedding", 65)
 
-        embeddings = (
-            self.embedding_service.embed_documents([
-                self._prepare_chunk_text(chunk, metadata) for chunk in chunks
-            ])
+        embeddings = self.embedding_service.embed_documents(
+            [self._prepare_chunk_text(chunk, metadata) for chunk in chunks]
         )
 
         await self._progress(on_progress, "indexing", 90)
 
-        await self.document_repository.update_metadata(document=document, metadata=metadata)
+        await self.document_repository.update_metadata(
+            document=document, metadata=metadata
+        )
 
         for chunk in chunks:
-            chunk.metadata.update({
-                "countries": metadata.countries,
-                "source_type": metadata.source_type,
-                "authority": metadata.authority,
-                "legal_references": metadata.legal_references,
-                "publication_date": metadata.publication_date.isoformat() if metadata.publication_date else None,
-                "effective_date": metadata.effective_date.isoformat() if metadata.effective_date else None,
-            })
+            chunk.metadata.update(
+                {
+                    "countries": metadata.countries,
+                    "source_type": metadata.source_type,
+                    "authority": metadata.authority,
+                    "legal_references": metadata.legal_references,
+                    "publication_date": metadata.publication_date.isoformat()
+                    if metadata.publication_date
+                    else None,
+                    "effective_date": metadata.effective_date.isoformat()
+                    if metadata.effective_date
+                    else None,
+                }
+            )
 
-        await self.document_repository.replace_chuncks(document_id=document.id, chunks=chunks, embeddings=embeddings)
+        await self.document_repository.replace_chuncks(
+            document_id=document.id, chunks=chunks, embeddings=embeddings
+        )
         await self.document_repository.update_processing_version(
             document=document,
             processing_version=settings.processing_version,
             parser_version=settings.parser_version,
             chunking_version=settings.chunking_version,
             metadata_version=settings.metadata_version,
-            embedding_model=settings.embedding_model
+            embedding_model=settings.embedding_model,
         )

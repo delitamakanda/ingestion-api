@@ -18,8 +18,8 @@ Rules:
 - Do not provide an answer to the question.
 """
 
-class QueryPlannerAgent:
 
+class QueryPlannerAgent:
     def __init__(self, llm):
         self.llm = llm
 
@@ -34,11 +34,15 @@ class QueryPlannerAgent:
         Explicit end date: {request.end_date}
         """
 
-        plan = await self.llm.structured(user_prompt=user_prompt, system_prompt=SYSTEM_PROMPT,schema=SearchPlan)
+        plan = await self.llm.structured(
+            user_prompt=user_prompt, system_prompt=SYSTEM_PROMPT, schema=SearchPlan
+        )
 
         return self._apply_explicit_filters(plan, request)
 
-    def _apply_explicit_filters(self, plan: SearchPlan, request: SearchRequest) -> SearchPlan:
+    def _apply_explicit_filters(
+        self, plan: SearchPlan, request: SearchRequest
+    ) -> SearchPlan:
         if request.countries:
             plan.countries = request.countries
         if request.start_date:

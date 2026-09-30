@@ -3,16 +3,12 @@ import re
 PATTERNS = [
     # european union directives
     r"\b(eu|european union)\s+(directive|regulation|decision)\b",
-
     # eur regulations
     r"\b(eu|european union)\s+(regulation|directive|decision)\s+(\d{4}/\d{1,4})\b",
-
     # french articles
     r"\b(article|art\.)\s+(\d{1,4})\b",
-
     # RED II / RED III
     r"\b(red\s+(ii|iii))\b",
-
     # generic eu references
     r"\b(eu|european union)\b",
 ]

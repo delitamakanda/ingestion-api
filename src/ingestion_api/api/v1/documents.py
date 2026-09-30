@@ -19,9 +19,14 @@ router = APIRouter(
 )
 DatabaseSession = Annotated[AsyncSession, Depends(get_db)]
 
+
 @router.get("/{document_id}/chunks")
 async def get_document_chunks(document_id: UUID, db: DatabaseSession):
-    statement = select(DocumentChunk).where(DocumentChunk.document_id == document_id).order_by(DocumentChunk.chunk_index)
+    statement = (
+        select(DocumentChunk)
+        .where(DocumentChunk.document_id == document_id)
+        .order_by(DocumentChunk.chunk_index)
+    )
     result = await db.execute(statement)
     chunks = result.scalars().all()
     return [
@@ -33,8 +38,10 @@ async def get_document_chunks(document_id: UUID, db: DatabaseSession):
             "page_start": chunk.page_start,
             "page_end": chunk.page_end,
             "metadata": chunk.metadata_,
-        } for chunk in chunks
+        }
+        for chunk in chunks
     ]
+
 
 @router.post("/{document_id}/reindex", status_code=202)
 async def reindex_document(document_id: UUID, db: DatabaseSession):
@@ -49,7 +56,7 @@ async def reindex_document(document_id: UUID, db: DatabaseSession):
         original_filename=document.file_name,
         stored_filename=document.stored_filename,
         content_hash=document.content_hash,
-        job_type=JobType.REINDEX
+        job_type=JobType.REINDEX,
     )
     await db.commit()
     await broker.enqueue_ingestion(job.id)

@@ -7,13 +7,11 @@ from ingestion_api.core.config import settings
 
 
 class JobBroker(ABC):
-
     @abstractmethod
-    async def enqueue_ingestion(self, job_id: UUID) -> None:
-        ...
+    async def enqueue_ingestion(self, job_id: UUID) -> None: ...
+
 
 class ArqJobBroker(JobBroker):
-
     def __init__(self):
         self._pool = None
 

@@ -2,9 +2,7 @@ from ingestion_api.domain.documents.models import Document
 from ingestion_api.domain.search.schemas import SearchRequest
 
 
-def apply_search_filters(
-        statement, request: SearchRequest
-):
+def apply_search_filters(statement, request: SearchRequest):
     if request.countries:
         statement = statement.where(Document.countries.overlap(request.countries))
 

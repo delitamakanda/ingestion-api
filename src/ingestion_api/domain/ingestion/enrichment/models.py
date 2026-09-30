@@ -15,6 +15,7 @@ class MetadataConfidence(BaseModel):
     language: float = 0
     legal_references: float = 0
 
+
 class ExtractedMetadata(BaseModel):
     countries: list[str] = Field(default_factory=list)
     publication_date: date | None = None

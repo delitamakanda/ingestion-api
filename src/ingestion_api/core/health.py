@@ -11,22 +11,27 @@ from ingestion_api.core.logging import get_logger
 
 logger = get_logger(__name__)
 
+
 class HealthStatus(StrEnum):
     HEALTHY = "healthy"
     UNHEALTHY = "unhealthy"
     UNAVAILABLE = "unavailable"
 
+
 class HealthResponse(BaseModel):
     status: HealthStatus
+
 
 class DependencyHealth(BaseModel):
     status: HealthStatus
     latency: float
     error: str
 
+
 class ReadinessResponse(BaseModel):
     status: HealthStatus
     dependencies: dict[str, DependencyHealth]
+
 
 async def check_database_health(session: AsyncSession) -> DependencyHealth:
     """
@@ -40,7 +45,10 @@ async def check_database_health(session: AsyncSession) -> DependencyHealth:
     except Exception as e:
         latency = (time.perf_counter() - start_time) * 1000  # Convert to milliseconds
         logger.exception("health.database.check_failed", exc_info=e)
-        return DependencyHealth(status=HealthStatus.UNHEALTHY, latency=latency, error=str(e))
+        return DependencyHealth(
+            status=HealthStatus.UNHEALTHY, latency=latency, error=str(e)
+        )
+
 
 async def check_redis_health() -> DependencyHealth:
     """
@@ -59,7 +67,9 @@ async def check_redis_health() -> DependencyHealth:
     except Exception as e:
         latency = (time.perf_counter() - start_time) * 1000  # Convert to milliseconds
         logger.exception("health.redis.check_failed", exc_info=e)
-        return DependencyHealth(status=HealthStatus.UNHEALTHY, latency=latency, error=str(e))
+        return DependencyHealth(
+            status=HealthStatus.UNHEALTHY, latency=latency, error=str(e)
+        )
     finally:
         if redis_pool:
             await redis_pool.aclose()

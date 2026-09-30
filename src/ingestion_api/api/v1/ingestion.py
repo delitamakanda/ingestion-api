@@ -31,21 +31,27 @@ router = APIRouter(
 
 SwaggerUploadFile = Annotated[
     FastAPIUploadFile,
-    WithJsonSchema({
-        "type": "string",
-        "format": "binary",
-    })
+    WithJsonSchema(
+        {
+            "type": "string",
+            "format": "binary",
+        }
+    ),
 ]
 UploadedFiles = Annotated[list[SwaggerUploadFile], File(...)]
 
 ALLOWED_EXTENSIONS = {".pdf", ".docx", ".txt"}
 
+
 @lru_cache
 def get_embedding_service():
     return SentenceTransformerEmbeddingService(model_name=settings.embedding_model)
 
+
 @router.post("/documents")
-async def upload_documents(files: UploadedFiles, session: Annotated[AsyncSession, Depends(get_db)]):
+async def upload_documents(
+    files: UploadedFiles, session: Annotated[AsyncSession, Depends(get_db)]
+):
     upload_dir = Path(settings.upload_dir)
     upload_dir.mkdir(parents=True, exist_ok=True)
 
@@ -54,17 +60,19 @@ async def upload_documents(files: UploadedFiles, session: Annotated[AsyncSession
     jobs = []
 
     for file in files:
-        original_filename = (file.filename or "")
+        original_filename = file.filename or ""
         extension = Path(original_filename).suffix.lower()
         if extension not in ALLOWED_EXTENSIONS:
-            jobs.append({
-                "original_filename": original_filename,
-                "stored_filename": None,
-                "content_hash": None,
-                "size": 0,
-                "status": "failed",
-                "error": f"File type {extension} is not allowed"
-            })
+            jobs.append(
+                {
+                    "original_filename": original_filename,
+                    "stored_filename": None,
+                    "content_hash": None,
+                    "size": 0,
+                    "status": "failed",
+                    "error": f"File type {extension} is not allowed",
+                }
+            )
             continue
         content = await file.read()
 
@@ -72,12 +80,14 @@ async def upload_documents(files: UploadedFiles, session: Annotated[AsyncSession
 
         existing_job = await job_repository.find_by_content_hash(content_hash)
         if existing_job:
-            jobs.append({
-                "job_id": str(existing_job.id),
-                "original_filename": original_filename,
-                "status": existing_job.status,
-                "duplicate": True,
-            })
+            jobs.append(
+                {
+                    "job_id": str(existing_job.id),
+                    "original_filename": original_filename,
+                    "status": existing_job.status,
+                    "duplicate": True,
+                }
+            )
             continue
 
         stored_filename = f"{uuid4()}{extension}"
@@ -85,21 +95,29 @@ async def upload_documents(files: UploadedFiles, session: Annotated[AsyncSession
         path = upload_dir / stored_filename
         await asyncio.to_thread(path.write_bytes, content)
 
-        job = await job_repository.create_job(original_filename=original_filename, stored_filename=stored_filename, content_hash=content_hash)
+        job = await job_repository.create_job(
+            original_filename=original_filename,
+            stored_filename=stored_filename,
+            content_hash=content_hash,
+        )
 
-        logger.info("ingestion.job.created", job_id=str(job.id), original_filename=original_filename, content_hash=content_hash)
+        logger.info(
+            "ingestion.job.created",
+            job_id=str(job.id),
+            original_filename=original_filename,
+            content_hash=content_hash,
+        )
 
-        jobs.append({
-            "job_id": str(job.id),
-            "original_filename": original_filename,
-            "status": job.status,
-        })
+        jobs.append(
+            {
+                "job_id": str(job.id),
+                "original_filename": original_filename,
+                "status": job.status,
+            }
+        )
 
         await session.commit()
 
         await broker.enqueue_ingestion(job.id)
 
-    return {
-        "count": len(jobs),
-        "jobs": jobs
-    }
+    return {"count": len(jobs), "jobs": jobs}

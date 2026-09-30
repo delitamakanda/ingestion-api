@@ -20,14 +20,15 @@ Rules:
 8. Do not treat a commentary document as equivalent to primary legislation.
 """
 
+
 class SynthesisAgent:
     def __init__(self, llm):
         self.llm = llm
 
-    async def synthesize(self, *, question: str, sources, timeline: TemporalTimeline | None) -> GeneratedAnswer:
-        source_payload = [
-            source.model_dump(mode="json") for source in sources
-        ]
+    async def synthesize(
+        self, *, question: str, sources, timeline: TemporalTimeline | None
+    ) -> GeneratedAnswer:
+        source_payload = [source.model_dump(mode="json") for source in sources]
 
         timeline_payload = timeline.model_dump(mode="json") if timeline else None
 
@@ -39,18 +40,17 @@ class SynthesisAgent:
         TEMPORAL ANALYSIS: {json.dumps(timeline_payload, ensure_ascii=False, indent=2)}
         """
 
-        return await self.llm.structured(user_prompt=user_prompt, system_prompt=SYSTEM_PROMPT, schema=GeneratedAnswer)
+        return await self.llm.structured(
+            user_prompt=user_prompt, system_prompt=SYSTEM_PROMPT, schema=GeneratedAnswer
+        )
 
-    def _validate_citations(self, answer: GeneratedAnswer, sources: list[CitationSource]) -> None:
-        allowed = {
-            source.source_id for source in sources
-        }
-
+    def _validate_citations(
+        self, answer: GeneratedAnswer, sources: list[CitationSource]
+    ) -> None:
+        allowed = {source.source_id for source in sources}
 
         for claim in answer.claims:
-            invalid = (
-                set(claim.source_ids) - allowed
-            )
+            invalid = set(claim.source_ids) - allowed
             if invalid:
                 raise ValueError(f"Invalid source ids: {invalid}")
 
