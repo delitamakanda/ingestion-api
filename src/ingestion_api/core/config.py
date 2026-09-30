@@ -8,9 +8,9 @@ class Settings(BaseSettings):
 
     environment: str = "dev"
 
-    database_url: str
+    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/ingestion_api"
 
-    alembic_database_url: str
+    alembic_database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/ingestion_api"
 
     upload_dir: str = "./data/uploads"
 
@@ -26,19 +26,19 @@ class Settings(BaseSettings):
         'intfloat/multilingual-e5-base'
     )
 
-    openai_api_key: str
+    openai_api_key: str = ""
 
     llm_model: str = "gpt-3.5-turbo"
 
     embedding_dimensions: int = 768
 
-    reranker_model: str
+    reranker_model: str = ""
 
     reranker_candidates: int = 10
 
     reranker_top_k: int = 5
 
-    redis_url: str
+    redis_url: str = "redis://localhost:6379/0"
 
     ingestion_max_attempts: int = 3
 
