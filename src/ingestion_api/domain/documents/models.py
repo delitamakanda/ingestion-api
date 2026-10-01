@@ -109,4 +109,5 @@ class DocumentChunk(Base):
             """to_tsvector('simple', coalesce(sections, '') || ' ' || coalesce(text, ''))""",
             persisted=True,
         ),
+        index=True,
     )
