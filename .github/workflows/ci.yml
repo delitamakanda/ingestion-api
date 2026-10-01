@@ -77,5 +77,11 @@ jobs:
         - name: Run Alembic migrations
           run: uv run alembic upgrade head
 
+        - name: Check migrations status
+          run: uv run alembic current
+
+        - name: Check migrations are up to date
+          run: uv run alembic check
+
         - name: Run Tests
           run: uv run pytest
