@@ -39,7 +39,7 @@ jobs:
         DATABASE_URL: postgresql+asyncpg://ingestion:ingestion@localhost:5432/ingestion_test
         ALEMBIC_DATABASE_URL: postgresql+psycopg://ingestion:ingestion@localhost:5432/ingestion_test
 
-        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        OPENAI_API_KEY: test-key
         RERANKER_MODEL: BAAI/bge-reranker-v2-m3
         REDIS_URL: redis://localhost:6379/0
 
