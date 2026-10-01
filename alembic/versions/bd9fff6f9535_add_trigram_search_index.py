@@ -18,6 +18,8 @@ depends_on: str | Sequence[str] | None = None
 
 
 def upgrade() -> None:
+    op.execute("CREATE EXTENSION IF NOT EXISTS vector")
+    op.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm")
     """Upgrade schema."""
     op.create_index(
         "ix_document_chunks_text_trgm",
@@ -25,6 +27,7 @@ def upgrade() -> None:
         ["text"],
         postgresql_using="gin",
         postgresql_ops={"text": "gin_trgm_ops"},
+        if_not_exists=True
     )
 
 
