@@ -2,7 +2,6 @@ import os
 
 import pytest
 
-from ingestion_api.core.config import settings
 from tests.evaluation.dataset import load_dataset
 from tests.evaluation.evaluator import RetrievalEvaluator
 
