@@ -1,14 +1,15 @@
+import os
+
 import pytest
 
-from ingestion_api.core.config import settings
 from tests.evaluation.dataset import load_dataset
 from tests.evaluation.evaluator import RetrievalEvaluator
 
 
 @pytest.mark.asyncio
 @pytest.mark.skipif(
-    not settings.openai_api_key.strip(),
-    reason="Retrieval quality evaluation requires an OpenAI API key.",
+    os.getenv("OPENAI_API_KEY") == "test-key",
+    reason="Retrieval quality evaluation requires a valid OpenAI API key.",
 )
 async def test_retrieval_quality(search_router, db_session):
     evaluator = RetrievalEvaluator(search_router, db_session)
