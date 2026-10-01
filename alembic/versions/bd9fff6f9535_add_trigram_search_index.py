@@ -27,7 +27,7 @@ def upgrade() -> None:
         ["text"],
         postgresql_using="gin",
         postgresql_ops={"text": "gin_trgm_ops"},
-        if_not_exists=True
+        if_not_exists=True,
     )
 
 
