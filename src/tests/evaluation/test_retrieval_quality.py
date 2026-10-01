@@ -6,10 +6,6 @@ from tests.evaluation.evaluator import RetrievalEvaluator
 
 
 @pytest.mark.asyncio
-@pytest.mark.skipif(
-    not settings.openai_api_key.strip(),
-    reason="Retrieval quality evaluation requires an OpenAI API key.",
-)
 async def test_retrieval_quality(search_router, db_session):
     evaluator = RetrievalEvaluator(search_router, db_session)
 

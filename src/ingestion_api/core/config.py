@@ -28,13 +28,13 @@ class Settings(BaseSettings):
 
     embedding_model: str = "intfloat/multilingual-e5-base"
 
-    openai_api_key: str = ""
+    openai_api_key: str
 
     llm_model: str = "gpt-3.5-turbo"
 
     embedding_dimensions: int = 768
 
-    reranker_model: str = ""
+    reranker_model: str = "BAAI/bge-reranker-v2-m3"
 
     reranker_candidates: int = 10
 
