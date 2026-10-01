@@ -30,7 +30,7 @@ class Settings(BaseSettings):
 
     openai_api_key: str
 
-    llm_model: str = "gpt-3.5-turbo"
+    llm_model: str = "gpt-4o-mini"
 
     embedding_dimensions: int = 768
 
