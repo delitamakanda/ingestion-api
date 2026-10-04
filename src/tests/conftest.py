@@ -1,9 +1,11 @@
 import logging
 
 import pytest_asyncio
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 from ingestion_api.api.v1.search import get_search_router
-from ingestion_api.core.database import AsyncSessionFactory, engine
+from ingestion_api.core.config import settings
+from ingestion_api.core.database import engine
 
 
 def pytest_configure():
@@ -12,10 +14,10 @@ def pytest_configure():
     engine.echo = False
 
 
-@pytest_asyncio.fixture
-async def db_session():
-    async with AsyncSessionFactory() as session:
-        yield session
+# @pytest_asyncio.fixture
+# async def db_session():
+# async with AsyncSessionFactory() as session:
+# yield session
 
 
 @pytest_asyncio.fixture
@@ -31,3 +33,21 @@ async def client():
 
     with TestClient(app) as client:
         yield client
+
+
+@pytest_asyncio.fixture
+async def db_session():
+    engine = create_async_engine(settings.database_url, echo=False)
+    async with engine.connect() as connection:
+        transaction = await connection.begin()
+        session = AsyncSession(
+            bind=connection,
+            expire_on_commit=False,
+            join_transaction_mode="create_savepoint",
+        )
+        try:
+            yield session
+        finally:
+            await session.close()
+            await transaction.rollback()
+    await engine.dispose()

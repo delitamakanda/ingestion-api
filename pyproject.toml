@@ -52,3 +52,8 @@ filterwarnings = [
     "ignore:builtin type SwigPyObject has no __module__ attribute:DeprecationWarning",
     "ignore:builtin type swigvarlink has no __module__ attribute:DeprecationWarning",
 ]
+markers = [
+    "integration: mark a test as an integration test",
+    "unit: mark a test as a unit test",
+    "evaluation: mark a test as an evaluation test",
+]

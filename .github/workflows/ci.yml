@@ -83,5 +83,8 @@ jobs:
         - name: Check migrations are up to date
           run: uv run alembic check
 
-        - name: Run Tests
-          run: uv run pytest
+        - name: Run Unit Tests
+          run: uv run pytest -m unit
+
+        - name: Run Integration Tests
+          run: uv run pytest -m integration
