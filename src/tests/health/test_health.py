@@ -1,3 +1,7 @@
+import pytest
+
+
+@pytest.mark.unit
 async def test_health_return_200(client):
     response = client.get("/health")
     assert response.status_code == 200
