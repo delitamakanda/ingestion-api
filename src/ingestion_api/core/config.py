@@ -44,6 +44,12 @@ class Settings(BaseSettings):
 
     ingestion_max_attempts: int = 3
 
+    jwt_secret_key: str
+
+    jwt_algorithm: str = "HS256"
+
+    jwt_access_token_expires_minutes: int = 30
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 

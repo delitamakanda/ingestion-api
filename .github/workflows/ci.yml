@@ -43,6 +43,10 @@ jobs:
         RERANKER_MODEL: BAAI/bge-reranker-v2-m3
         REDIS_URL: redis://localhost:6379/0
 
+        JWT_SECRET_KEY: test-secret-key
+        JWT_ALGORITHM: HS256
+        JWT_ACCESS_TOKEN_EXPIRES_MINUTES: 30
+
       services:
         postgres:
           image: pgvector/pgvector:pg17

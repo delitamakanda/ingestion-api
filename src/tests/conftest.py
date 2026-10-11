@@ -51,3 +51,22 @@ async def db_session():
             await session.close()
             await transaction.rollback()
     await engine.dispose()
+
+
+@pytest_asyncio.fixture
+async def async_client(db_session):
+    from httpx import ASGITransport, AsyncClient
+
+    from ingestion_api.core.database import get_db
+    from ingestion_api.main import app
+
+    async def override_get_db():
+        yield db_session
+
+    app.dependency_overrides[get_db] = override_get_db
+    transport = ASGITransport(app=app)
+    try:
+        async with AsyncClient(transport=transport, base_url="http://test") as ac:
+            yield ac
+    finally:
+        app.dependency_overrides.pop(get_db, None)

@@ -1,6 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ingestion_api.domain.users.enums import UserRole
 from ingestion_api.domain.users.models import User
 
 
@@ -14,8 +15,8 @@ class UserRepository:
         )
         return result.scalars().first()
 
-    async def create_user(self, *, email: str, password: str) -> User:
-        user = User(email=email.lower(), password=password)
+    async def create_user(self, *, email: str, password: str, role: UserRole) -> User:
+        user = User(email=email.lower(), password=password, role=role)
         self.session.add(user)
         await self.session.flush()
         return user
