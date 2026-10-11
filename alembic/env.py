@@ -6,7 +6,8 @@ from dotenv import load_dotenv
 # Import model modules so their tables are registered on Base.metadata
 # before alembic compares it against the database (e.g. `alembic check`).
 import ingestion_api.domain.documents.models
-import ingestion_api.domain.jobs.models  # noqa: F401
+import ingestion_api.domain.jobs.models
+import ingestion_api.domain.users.models  # noqa: F401
 from ingestion_api.core.models import Base
 
 load_dotenv()
