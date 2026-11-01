@@ -65,5 +65,15 @@ async def get_current_user(
     return user
 
 
-CurrentUser = Annotated[User, Depends(get_current_user)]
-AdminUser = Annotated[User, Depends(require_role(UserRole.ADMIN))]
+CurrentUser = Annotated[
+    User,
+    Depends(get_current_user),
+]
+AdminUser = Annotated[
+    User,
+    Depends(require_role(UserRole.ADMIN)),
+]
+ReaderUser = Annotated[
+    User,
+    Depends(require_role(UserRole.USER, UserRole.ADMIN)),
+]

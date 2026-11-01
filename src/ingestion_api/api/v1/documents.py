@@ -5,10 +5,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ingestion_api.api.dependencies.auth import require_role
 from ingestion_api.core.database import get_db
 from ingestion_api.domain.documents.models import Document, DocumentChunk
 from ingestion_api.domain.jobs.models import JobType
 from ingestion_api.domain.jobs.repository import JobRepository
+from ingestion_api.domain.users.enums import UserRole
 from ingestion_api.workers.broker import ArqJobBroker
 
 broker = ArqJobBroker()
@@ -16,6 +18,7 @@ broker = ArqJobBroker()
 router = APIRouter(
     prefix="/documents",
     tags=["documents"],
+    dependencies=[Depends(require_role(UserRole.USER, UserRole.ADMIN))],
 )
 DatabaseSession = Annotated[AsyncSession, Depends(get_db)]
 
@@ -43,7 +46,11 @@ async def get_document_chunks(document_id: UUID, db: DatabaseSession):
     ]
 
 
-@router.post("/{document_id}/reindex", status_code=202)
+@router.post(
+    "/{document_id}/reindex",
+    status_code=202,
+    dependencies=[Depends(require_role(UserRole.ADMIN))],
+)
 async def reindex_document(document_id: UUID, db: DatabaseSession):
     job_repository = JobRepository(db)
     statement = select(Document).where(Document.id == document_id)

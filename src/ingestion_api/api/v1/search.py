@@ -4,6 +4,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ingestion_api.api.dependencies.auth import require_role
 from ingestion_api.core.config import settings
 from ingestion_api.core.database import get_db
 from ingestion_api.domain.search.router import SearchRouter
@@ -13,6 +14,7 @@ from ingestion_api.domain.search.strategies.natural_language import (
     NaturalLanguageSearchStrategy,
 )
 from ingestion_api.domain.search.strategies.text import TextSearchStrategy
+from ingestion_api.domain.users.enums import UserRole
 from ingestion_api.llm.agents.query_planner import QueryPlannerAgent
 from ingestion_api.llm.agents.synthesis import SynthesisAgent
 from ingestion_api.llm.agents.temporal import TemporalAgent
@@ -78,6 +80,7 @@ SearchRouterDependency = Annotated[SearchRouter, Depends(get_search_router)]
 router = APIRouter(
     prefix="/search",
     tags=["search"],
+    dependencies=[Depends(require_role(UserRole.USER, UserRole.ADMIN))],
 )
 
 

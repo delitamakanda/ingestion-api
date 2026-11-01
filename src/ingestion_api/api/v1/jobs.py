@@ -4,16 +4,22 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ingestion_api.api.dependencies.auth import require_role
 from ingestion_api.core.database import get_db
 from ingestion_api.domain.jobs.enums import JobStatus
 from ingestion_api.domain.jobs.repository import JobRepository
 from ingestion_api.domain.jobs.schemas import JobResponse
+from ingestion_api.domain.users.enums import UserRole
 from ingestion_api.workers.broker import ArqJobBroker
 
 broker = ArqJobBroker()
 
 
-router = APIRouter(prefix="/jobs", tags=["jobs"])
+router = APIRouter(
+    prefix="/jobs",
+    tags=["jobs"],
+    dependencies=[Depends(require_role(UserRole.ADMIN))],
+)
 DatabaseSession = Annotated[AsyncSession, Depends(get_db)]
 
 

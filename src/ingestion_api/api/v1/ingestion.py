@@ -10,10 +10,12 @@ from fastapi import UploadFile as FastAPIUploadFile
 from pydantic import WithJsonSchema
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ingestion_api.api.dependencies.auth import require_role
 from ingestion_api.core.config import settings
 from ingestion_api.core.database import get_db
 from ingestion_api.core.logging import get_logger
 from ingestion_api.domain.jobs.repository import JobRepository
+from ingestion_api.domain.users.enums import UserRole
 from ingestion_api.llm.embeddings.sentence_transformer import (
     SentenceTransformerEmbeddingService,
 )
@@ -26,6 +28,7 @@ broker = ArqJobBroker()
 router = APIRouter(
     prefix="/ingestion",
     tags=["ingestion"],
+    dependencies=[Depends(require_role(UserRole.ADMIN))],
     responses={404: {"description": "Not found"}},
 )
 
