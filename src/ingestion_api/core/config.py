@@ -50,6 +50,12 @@ class Settings(BaseSettings):
 
     jwt_access_token_expires_minutes: int = 30
 
+    login_ip_limit: int = 20
+
+    login_email_limit: int = 5
+
+    login_rate_limit_window_seconds: int = 60
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
 

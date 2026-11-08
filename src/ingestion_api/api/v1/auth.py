@@ -1,9 +1,11 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ingestion_api.api.dependencies.auth import CurrentUser
+from ingestion_api.api.dependencies.login_rate_limit import check_login_rate_limit
+from ingestion_api.api.dependencies.rate_limit import RedisClient
 from ingestion_api.core.database import get_db
 from ingestion_api.core.security.tokens import create_access_token
 from ingestion_api.domain.auth.schemas import LoginRequest, TokenResponse
@@ -17,7 +19,14 @@ DatabaseSession = Annotated[AsyncSession, Depends(get_db)]
 
 
 @router.post("/login", response_model=TokenResponse)
-async def login(request: LoginRequest, db: DatabaseSession):
+async def login(
+    request: LoginRequest,
+    http_request: Request,
+    db: DatabaseSession,
+    redis: RedisClient,
+):
+    await check_login_rate_limit(http_request, request, redis)
+
     user_repository = UserRepository(db)
     user_service = UserService(user_repository)
 
