@@ -28,9 +28,7 @@ def upgrade() -> None:
         "documents",
         sa.Column("processing_version", sa.String(length=100), nullable=False),
     )
-    op.add_column(
-        "documents", sa.Column("parser_version", sa.String(length=100), nullable=False)
-    )
+    op.add_column("documents", sa.Column("parser_version", sa.String(length=100), nullable=False))
     op.add_column(
         "documents",
         sa.Column("chunking_version", sa.String(length=100), nullable=False),
@@ -65,22 +63,14 @@ def downgrade() -> None:
             autoincrement=False,
             nullable=False,
         ),
-        sa.Column(
-            "content_hash", sa.VARCHAR(length=64), autoincrement=False, nullable=False
-        ),
+        sa.Column("content_hash", sa.VARCHAR(length=64), autoincrement=False, nullable=False),
         sa.Column("status", sa.VARCHAR(length=50), autoincrement=False, nullable=False),
-        sa.Column(
-            "current_step", sa.VARCHAR(length=100), autoincrement=False, nullable=True
-        ),
+        sa.Column("current_step", sa.VARCHAR(length=100), autoincrement=False, nullable=True),
         sa.Column("progress", sa.INTEGER(), autoincrement=False, nullable=False),
         sa.Column("attempts", sa.INTEGER(), autoincrement=False, nullable=False),
-        sa.Column(
-            "error_code", sa.VARCHAR(length=100), autoincrement=False, nullable=True
-        ),
+        sa.Column("error_code", sa.VARCHAR(length=100), autoincrement=False, nullable=True),
         sa.Column("error_message", sa.TEXT(), autoincrement=False, nullable=True),
-        sa.Column(
-            "created_at", postgresql.TIMESTAMP(), autoincrement=False, nullable=False
-        ),
+        sa.Column("created_at", postgresql.TIMESTAMP(), autoincrement=False, nullable=False),
         sa.Column(
             "started_at",
             postgresql.TIMESTAMP(timezone=True),

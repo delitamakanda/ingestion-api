@@ -34,9 +34,7 @@ def upgrade() -> None:
         sa.Column("page_start", sa.Integer(), nullable=False),
         sa.Column("page_end", sa.Integer(), nullable=False),
         sa.Column("metadata", postgresql.JSONB(astext_type=sa.Text()), nullable=False),
-        sa.Column(
-            "embedding", pgvector.sqlalchemy.vector.VECTOR(dim=1024), nullable=False
-        ),
+        sa.Column("embedding", pgvector.sqlalchemy.vector.VECTOR(dim=1024), nullable=False),
         sa.ForeignKeyConstraint(["document_id"], ["documents.id"], ondelete="CASCADE"),
         sa.PrimaryKeyConstraint("id"),
     )

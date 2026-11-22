@@ -24,9 +24,7 @@ def upgrade() -> None:
     """Upgrade schema."""
     op.add_column(
         "ingestion_jobs",
-        sa.Column(
-            "document_id", postgresql.UUID(as_uuid=True), nullable=True, index=True
-        ),
+        sa.Column("document_id", postgresql.UUID(as_uuid=True), nullable=True, index=True),
     )
 
     op.create_foreign_key(
@@ -41,7 +39,5 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     """Downgrade schema."""
-    op.drop_constraint(
-        "fk_ingestion_jobs_document_id_documents", "ingestion_jobs", type_="foreignkey"
-    )
+    op.drop_constraint("fk_ingestion_jobs_document_id_documents", "ingestion_jobs", type_="foreignkey")
     op.drop_column("ingestion_jobs", "document_id")

@@ -30,12 +30,8 @@ def upgrade() -> None:
         postgresql_using="hnsw",
     )
     op.add_column("documents", sa.Column("expiration_date", sa.Date(), nullable=True))
-    op.add_column(
-        "documents", sa.Column("source_type", sa.String(length=100), nullable=True)
-    )
-    op.add_column(
-        "documents", sa.Column("authority", sa.String(length=100), nullable=True)
-    )
+    op.add_column("documents", sa.Column("source_type", sa.String(length=100), nullable=True))
+    op.add_column("documents", sa.Column("authority", sa.String(length=100), nullable=True))
     op.add_column(
         "documents",
         sa.Column("legal_references", postgresql.ARRAY(sa.String()), nullable=True),

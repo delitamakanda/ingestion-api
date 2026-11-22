@@ -47,9 +47,7 @@ def upgrade() -> None:
         existing_type=sa.VARCHAR(length=100),
         nullable=True,
     )
-    op.alter_column(
-        "ingestion_jobs", "job_type", existing_type=sa.VARCHAR(length=50), nullable=True
-    )
+    op.alter_column("ingestion_jobs", "job_type", existing_type=sa.VARCHAR(length=50), nullable=True)
     op.alter_column(
         "ingestion_jobs",
         "original_filename",
@@ -92,12 +90,8 @@ def upgrade() -> None:
         ["content_hash"],
         unique=False,
     )
-    op.create_index(
-        op.f("ix_ingestion_jobs_job_type"), "ingestion_jobs", ["job_type"], unique=False
-    )
-    op.create_index(
-        op.f("ix_ingestion_jobs_status"), "ingestion_jobs", ["status"], unique=False
-    )
+    op.create_index(op.f("ix_ingestion_jobs_job_type"), "ingestion_jobs", ["job_type"], unique=False)
+    op.create_index(op.f("ix_ingestion_jobs_status"), "ingestion_jobs", ["status"], unique=False)
     # ### end Alembic commands ###
 
 

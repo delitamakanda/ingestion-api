@@ -28,9 +28,7 @@ def upgrade() -> None:
         "documents",
         sa.Column("countries", sa.ARRAY(sa.String(length=2)), nullable=True),
     )
-    op.add_column(
-        "documents", sa.Column("language", sa.String(length=100), nullable=True)
-    )
+    op.add_column("documents", sa.Column("language", sa.String(length=100), nullable=True))
     op.add_column("documents", sa.Column("effective_date", sa.Date(), nullable=True))
     op.create_index(
         "ix_document_chunks_text_trgm",
