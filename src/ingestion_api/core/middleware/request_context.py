@@ -12,9 +12,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
     def __init__(self, app: ASGIApp, /) -> None:
         super().__init__(app)
 
-    async def dispatch(
-        self, request: Request, call_next: RequestResponseEndpoint
-    ) -> Response:
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         request_id = request.headers.get("X-Request-ID") or str(uuid4())
         structlog.contextvars.clear_contextvars()
         structlog.contextvars.bind_contextvars(request_id=request_id)
@@ -33,9 +31,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
         try:
             response = await call_next(request)
 
-            duration = (
-                time.perf_counter() - start_time
-            ) * 1000  # Convert to milliseconds
+            duration = (time.perf_counter() - start_time) * 1000  # Convert to milliseconds
 
             logger.info(
                 "http.request.end",
@@ -49,9 +45,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
 
             return response
         except Exception:
-            duration_ms = (
-                time.perf_counter() - start_time
-            ) * 1000  # Convert to milliseconds
+            duration_ms = (time.perf_counter() - start_time) * 1000  # Convert to milliseconds
             logger.exception(
                 "http.request.exception",
                 method=request.method,

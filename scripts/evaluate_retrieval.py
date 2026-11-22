@@ -39,9 +39,7 @@ async def main():
                 if result.retrieved_chunks_ids:
                     print("Retrieved Chunk IDs:")
 
-                    for rank, chunk_id in enumerate(
-                        result.retrieved_chunks_ids, start=1
-                    ):
+                    for rank, chunk_id in enumerate(result.retrieved_chunks_ids, start=1):
                         marker = "*" if chunk_id in case.chunks_ids else ""
                         print(f"Rank {rank:>2}: {chunk_id}[{marker}]")
 

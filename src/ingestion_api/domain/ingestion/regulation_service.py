@@ -31,9 +31,7 @@ class RegulationService:
 
     async def _ingest_url(self, url: str):
         normalized_url = self._normalized_url(url)
-        existing_document = await self.pipeline.document_repository.get_by_source_url(
-            normalized_url
-        )
+        existing_document = await self.pipeline.document_repository.get_by_source_url(normalized_url)
         if existing_document:
             return existing_document
 
@@ -45,10 +43,7 @@ class RegulationService:
                 "User-Agent": (
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
                 ),
-                "Accept": (
-                    "text/html,application/xhtml+xml,application/xml;q=0.9,"
-                    "application/pdf;q=0.8,*/*;q=0.7"
-                ),
+                "Accept": ("text/html,application/xhtml+xml,application/xml;q=0.9,application/pdf;q=0.8,*/*;q=0.7"),
                 "Content-Type": "application/json",
                 "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",
             },
@@ -76,9 +71,7 @@ class RegulationService:
                 original_filename=self._build_filename(normalized_url, extension),
             )
 
-            await self.pipeline.document_repository.attach_source_url(
-                document.id, normalized_url
-            )
+            await self.pipeline.document_repository.attach_source_url(document.id, normalized_url)
 
             return document
         finally:

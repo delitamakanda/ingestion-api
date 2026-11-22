@@ -1,4 +1,4 @@
-from collections.abc import AsyncGenerator, Callable
+from collections.abc import AsyncGenerator, Awaitable, Callable
 from dataclasses import dataclass
 from typing import Annotated
 
@@ -37,15 +37,13 @@ DEFAULT_RATE_LIMIT = RateLimitPolicy(name="authenticated", limit=10, window_seco
 
 def require_rate_limit(
     policy: RateLimitPolicy,
-) -> Callable:
+) -> Callable[..., Awaitable[None]]:
     async def rate_limit_checker(current_user: CurrentUser, redis: RedisClient) -> None:
         key = f"rate-limit:{policy.name}:{current_user.id}"
         limiter = RedisRateLimiter(redis)
 
         try:
-            result = await limiter.is_allowed(
-                key=key, limit=policy.limit, window_seconds=policy.window_seconds
-            )
+            result = await limiter.is_allowed(key=key, limit=policy.limit, window_seconds=policy.window_seconds)
         except RedisError as exc:
             logger.error(
                 "rate_limit.redis.unavailable",

@@ -18,18 +18,12 @@ class HtmlParser(DocumentParser):
         for tag in soup(["style", "script", "noscript"]):
             tag.decompose()
 
-        title = (
-            soup.title.string.strip()
-            if soup.title and soup.title.string
-            else file_path.stem
-        )
+        title = soup.title.string.strip() if soup.title and soup.title.string else file_path.stem
 
         text = soup.get_text("\n", strip=True)
         return ParsedDocument(
             filename=file_path.name,
-            elements=[
-                DocumentElement(type="paragraph", content=text, section=None, page=None)
-            ],
+            elements=[DocumentElement(type="paragraph", content=text, section=None, page=None)],
             title=title,
             metadata={"source_url": str(file_path), "content_type": "html"},
         )

@@ -1,6 +1,7 @@
 import json
 
 from ingestion_api.domain.search.schemas import CitationSource
+from ingestion_api.llm.providers.base import LLMProvider
 from ingestion_api.llm.schemas import GeneratedAnswer, TemporalTimeline
 
 SYSTEM_PROMPT = """
@@ -22,12 +23,10 @@ Rules:
 
 
 class SynthesisAgent:
-    def __init__(self, llm):
+    def __init__(self, llm: LLMProvider):
         self.llm = llm
 
-    async def synthesize(
-        self, *, question: str, sources, timeline: TemporalTimeline | None
-    ) -> GeneratedAnswer:
+    async def synthesize(self, *, question: str, sources, timeline: TemporalTimeline | None) -> GeneratedAnswer:
         source_payload = [source.model_dump(mode="json") for source in sources]
 
         timeline_payload = timeline.model_dump(mode="json") if timeline else None
@@ -40,13 +39,9 @@ class SynthesisAgent:
         TEMPORAL ANALYSIS: {json.dumps(timeline_payload, ensure_ascii=False, indent=2)}
         """
 
-        return await self.llm.structured(
-            user_prompt=user_prompt, system_prompt=SYSTEM_PROMPT, schema=GeneratedAnswer
-        )
+        return await self.llm.structured(user_prompt=user_prompt, system_prompt=SYSTEM_PROMPT, schema=GeneratedAnswer)
 
-    def _validate_citations(
-        self, answer: GeneratedAnswer, sources: list[CitationSource]
-    ) -> None:
+    def _validate_citations(self, answer: GeneratedAnswer, sources: list[CitationSource]) -> None:
         allowed = {source.source_id for source in sources}
 
         for claim in answer.claims:

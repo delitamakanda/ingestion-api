@@ -43,9 +43,7 @@ async def test_replace_chunks(db_session):
         ),
     ]
     embedding: list[list[float | int]] = [[0.01] * 768]
-    await document_repository.replace_chuncks(
-        document.id, new_chunks, embeddings=embedding
-    )
+    await document_repository.replace_chuncks(document.id, new_chunks, embeddings=embedding)
     await db_session.commit()
 
     found = await document_repository.get_by_hash("doc-hash-1233")

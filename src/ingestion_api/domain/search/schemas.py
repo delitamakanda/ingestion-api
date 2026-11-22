@@ -9,9 +9,7 @@ from ingestion_api.llm.schemas import AnswerClaim
 class SearchRequest(BaseModel):
     query: str = Field(..., description="The search query string")
     mode: SearchMode = Field(..., description="The mode of the search")
-    countries: list[str] = Field(
-        default_factory=list, description="The list of countries to search in"
-    )
+    countries: list[str] = Field(default_factory=list, description="The list of countries to search in")
     start_date: date | None = Field(None, description="The start date of the search")
     end_date: date | None = Field(None, description="The end date of the search")
     limit: int = Field(
@@ -27,9 +25,7 @@ class SearchRequest(BaseModel):
 
 class RetrievalRequest(BaseModel):
     query: str = Field(..., description="The search query string")
-    countries: list[str] = Field(
-        default_factory=list, description="The list of countries to search in"
-    )
+    countries: list[str] = Field(default_factory=list, description="The list of countries to search in")
     start_date: date | None = Field(None, description="The start date of the search")
     end_date: date | None = Field(None, description="The end date of the search")
     limit: int = Field(
@@ -68,19 +64,13 @@ class SearchResult(BaseModel):
     text: str = Field(..., description="The text of the document")
     score: float = Field(..., description="The relevance score of the document")
     source_type: str | None = Field(None, description="The type of the source")
-    reranker_score: float | None = Field(
-        None, description="The reranking score of the document"
-    )
+    reranker_score: float | None = Field(None, description="The reranking score of the document")
 
 
 class NaturalLanguageAnswerResponse(BaseModel):
     summary: str = Field(..., description="The summary of the answer")
-    claims: list[AnswerClaim] = Field(
-        default_factory=list, description="The list of claims in the answer"
-    )
-    insufficient_information: bool = Field(
-        default=False, description="Whether the answer is insufficient information"
-    )
+    claims: list[AnswerClaim] = Field(default_factory=list, description="The list of claims in the answer")
+    insufficient_information: bool = Field(default=False, description="Whether the answer is insufficient information")
 
 
 class SearchResponse(BaseModel):
@@ -89,9 +79,7 @@ class SearchResponse(BaseModel):
     results: list[SearchResult] = Field(..., description="The list of search results")
     total: int = Field(..., description="The total number of results")
 
-    answer: NaturalLanguageAnswerResponse | None = Field(
-        None, description="The natural language answer"
-    )
+    answer: NaturalLanguageAnswerResponse | None = Field(None, description="The natural language answer")
 
     sources: list[CitationSource] | None = Field(
         default_factory=list, description="The list of sources used in the answer"

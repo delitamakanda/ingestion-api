@@ -43,6 +43,7 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "mypy>=2.4.1",
     "pre-commit>=4.7.0",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
@@ -73,3 +74,15 @@ extend-select = ["I"] # sort imports
 
 [tool.mypy]
 strict = true
+plugins = ["pydantic.mypy"]
+mypy_path = "src"
+explicit_package_bases = true
+exclude = ["^alembic/"]
+# Untyped functions are allowed (no-untyped-def / no-untyped-call not enforced)
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
+disallow_untyped_calls = false
+
+[[tool.mypy.overrides]]
+module = ["docx.*", "fitz.*", "pymupdf.*", "arq.*", "sentence_transformers.*", "pgvector.*"]
+ignore_missing_imports = true

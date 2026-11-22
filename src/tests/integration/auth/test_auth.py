@@ -11,9 +11,7 @@ async def test_login_returns_access_token(async_client, db_session):
     repository = UserRepository(db_session)
     service = UserService(repository)
 
-    user = await service.create_user(
-        email="test@example.com", password="password", role=UserRole.USER
-    )
+    user = await service.create_user(email="test@example.com", password="password", role=UserRole.USER)
 
     await db_session.commit()
 

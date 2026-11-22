@@ -40,9 +40,7 @@ class HybridRetriever:
         self.rrf_k = rrf_k  # Reciprocal Rank Fusion parameter
         self.reranker = reranker
 
-    async def search_plan(
-        self, plan: SearchPlan, session: AsyncSession, *, limit: int = 10
-    ):
+    async def search_plan(self, plan: SearchPlan, session: AsyncSession, *, limit: int = 10):
         requests = [
             RetrievalRequest(
                 query=query,
@@ -61,32 +59,22 @@ class HybridRetriever:
         candidates = self._merge_query_results(result_sets, limit=10)
 
         if self.reranker:
-            return self.reranker.rerank(
-                query=" ".join(plan.queries), results=candidates, top_k=limit
-            )
+            return self.reranker.rerank(query=" ".join(plan.queries), results=candidates, top_k=limit)
         return candidates[:limit]
 
-    async def search(
-        self, request: RetrievalRequest, session: AsyncSession, limit: int = 10
-    ):
+    async def search(self, request: RetrievalRequest, session: AsyncSession, limit: int = 10):
         logger.info("hybrid_retriever.search.started", query=request.query, limit=limit)
         start_time = time.perf_counter()
         try:
-            lexical_results = await self.lexical_retriever.keyword_search(
-                request, session
-            )
-            vector_results = await self.vector_retriever.search(
-                request, session=session, limit=30
-            )
+            lexical_results = await self.lexical_retriever.keyword_search(request, session)
+            vector_results = await self.vector_retriever.search(request, session=session, limit=30)
 
             combined_results: dict[str, RankedResult] = {}
 
             self._merge(combined_results, lexical_results)
             self._merge(combined_results, vector_results)
 
-            ranked = sorted(
-                combined_results.values(), key=lambda x: x.score, reverse=True
-            )
+            ranked = sorted(combined_results.values(), key=lambda x: x.score, reverse=True)
             # Add lexical results to the combined results
             results = []
             for item in ranked[:limit]:
@@ -99,9 +87,7 @@ class HybridRetriever:
                 elapsed=(time.perf_counter() - start_time) * 1000,
             )
             RETRIEVAL_REQUESTS_TOTAL.labels(status="completed").inc()
-            RETRIEVAL_DURATION_SECONDS.observe(
-                (time.perf_counter() - start_time) * 1000
-            )
+            RETRIEVAL_DURATION_SECONDS.observe((time.perf_counter() - start_time) * 1000)
             RETRIEVAL_RESULTS.observe(len(results))
             return results
         except Exception:
@@ -112,28 +98,20 @@ class HybridRetriever:
                 elapsed=(time.perf_counter() - start_time) * 1000,
             )
             RETRIEVAL_REQUESTS_TOTAL.labels(status="failed").inc()
-            RETRIEVAL_DURATION_SECONDS.observe(
-                (time.perf_counter() - start_time) * 1000
-            )
+            RETRIEVAL_DURATION_SECONDS.observe((time.perf_counter() - start_time) * 1000)
             RETRIEVAL_RESULTS.observe(0)
             return []
 
-    def _merge(
-        self, combined_results: dict[str, RankedResult], new_results: list[SearchResult]
-    ):
+    def _merge(self, combined_results: dict[str, RankedResult], new_results: list[SearchResult]):
         for rank, result in enumerate(new_results, start=1):
             rrf_score = 1 / (self.rrf_k + rank)
             existing = combined_results.get(result.chunk_id)
             if existing:
                 existing.score += rrf_score
             else:
-                combined_results[result.chunk_id] = RankedResult(
-                    result=result, score=rrf_score
-                )
+                combined_results[result.chunk_id] = RankedResult(result=result, score=rrf_score)
 
-    def _merge_query_results(
-        self, result_sets: list[list[SearchResult]], *, limit: int = 10
-    ):
+    def _merge_query_results(self, result_sets: list[list[SearchResult]], *, limit: int = 10):
         scores: dict[str, RankedResult] = {}
         for results in result_sets:
             for rank, result in enumerate(results, start=1):
@@ -155,4 +133,7 @@ class HybridRetriever:
         return [item.result for item in ranked[:limit]]
 
     def _source_weight(self, result: SearchResult) -> float:
-        return SOURCE_WEIGHTS.get(result.source_type, SOURCE_WEIGHTS[SourceType.OTHER])
+        default = SOURCE_WEIGHTS[SourceType.OTHER]
+        if result.source_type is None or result.source_type not in SourceType:
+            return default
+        return SOURCE_WEIGHTS.get(SourceType(result.source_type), default)

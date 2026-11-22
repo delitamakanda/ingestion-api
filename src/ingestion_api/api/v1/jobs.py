@@ -29,9 +29,7 @@ async def get_job(job_id: UUID, session: DatabaseSession):
     job = await job_repository.get_job_by_id(job_id)
 
     if not job:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Job not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found")
 
     return job
 
@@ -48,9 +46,7 @@ async def retry_job(job_id: UUID, session: DatabaseSession):
     job = await job_repository.get_job_by_id(job_id)
 
     if not job:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Job not found"
-        )
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Job not found")
 
     if job.status != JobStatus.FAILED:
         raise HTTPException(

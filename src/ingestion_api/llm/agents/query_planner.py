@@ -1,4 +1,5 @@
 from ingestion_api.domain.search.schemas import SearchRequest
+from ingestion_api.llm.providers.base import LLMProvider
 from ingestion_api.llm.schemas import SearchPlan
 
 SYSTEM_PROMPT = """
@@ -20,7 +21,7 @@ Rules:
 
 
 class QueryPlannerAgent:
-    def __init__(self, llm):
+    def __init__(self, llm: LLMProvider):
         self.llm = llm
 
     async def plan(self, request: SearchRequest) -> SearchPlan:
@@ -34,15 +35,11 @@ class QueryPlannerAgent:
         Explicit end date: {request.end_date}
         """
 
-        plan = await self.llm.structured(
-            user_prompt=user_prompt, system_prompt=SYSTEM_PROMPT, schema=SearchPlan
-        )
+        plan = await self.llm.structured(user_prompt=user_prompt, system_prompt=SYSTEM_PROMPT, schema=SearchPlan)
 
         return self._apply_explicit_filters(plan, request)
 
-    def _apply_explicit_filters(
-        self, plan: SearchPlan, request: SearchRequest
-    ) -> SearchPlan:
+    def _apply_explicit_filters(self, plan: SearchPlan, request: SearchRequest) -> SearchPlan:
         if request.countries:
             plan.countries = request.countries
         if request.start_date:

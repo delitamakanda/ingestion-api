@@ -35,25 +35,15 @@ class RequestResult:
 results: list[RequestResult] = []
 
 
-async def request(
-    client: httpx.AsyncClient, method: str, url: str, endpoint: str, **kwargs
-):
+async def request(client: httpx.AsyncClient, method: str, url: str, endpoint: str, **kwargs):
     started = time.perf_counter()
     try:
         response = await client.request(method, url, **kwargs)
         duration = time.perf_counter() - started
-        results.append(
-            RequestResult(
-                endpoint=endpoint, status_code=response.status_code, duration=duration
-            )
-        )
+        results.append(RequestResult(endpoint=endpoint, status_code=response.status_code, duration=duration))
     except httpx.HTTPError as e:
         duration = time.perf_counter() - started
-        results.append(
-            RequestResult(
-                endpoint=endpoint, status_code=0, duration=duration, error=str(e)
-            )
-        )
+        results.append(RequestResult(endpoint=endpoint, status_code=0, duration=duration, error=str(e)))
 
 
 async def health(client: httpx.AsyncClient):
@@ -61,15 +51,11 @@ async def health(client: httpx.AsyncClient):
 
 
 async def list_jobs(client: httpx.AsyncClient):
-    return await request(
-        client, "GET", f"{BASE_URL}/api/v1/jobs/", endpoint="list_jobs"
-    )
+    return await request(client, "GET", f"{BASE_URL}/api/v1/jobs/", endpoint="list_jobs")
 
 
 async def not_found(client: httpx.AsyncClient):
-    return await request(
-        client, "GET", f"{BASE_URL}/api/v1/jobs/999999", endpoint="not_found"
-    )
+    return await request(client, "GET", f"{BASE_URL}/api/v1/jobs/999999", endpoint="not_found")
 
 
 async def upload_file(client: httpx.AsyncClient):
@@ -87,9 +73,7 @@ async def upload_file(client: httpx.AsyncClient):
 async def perform_requests(client: httpx.AsyncClient, duration: int):
     end_time = time.time() + duration
     while time.time() < end_time:
-        choice = random.choices(
-            [health, list_jobs, not_found, upload_file], weights=[50, 30, 15, 5]
-        )[0]
+        choice = random.choices([health, list_jobs, not_found, upload_file], weights=[50, 30, 15, 5])[0]
         await choice(client)
 
 
@@ -108,14 +92,10 @@ async def run_load_test(num_workers: int, duration: int):
     print(f"STAGE: {num_workers} concurrent requests for {duration} seconds")
     print("=" * 50)
     stop_event = asyncio.Event()
-    limits = httpx.Limits(
-        max_connections=num_workers, max_keepalive_connections=num_workers
-    )
+    limits = httpx.Limits(max_connections=num_workers, max_keepalive_connections=num_workers)
     timeout = httpx.Timeout(connect=5, read=30, write=30, pool=30)
     async with httpx.AsyncClient(limits=limits, timeout=timeout) as client:
-        tasks = [
-            asyncio.create_task(worker(client, stop_event)) for _ in range(num_workers)
-        ]
+        tasks = [asyncio.create_task(worker(client, stop_event)) for _ in range(num_workers)]
         await asyncio.sleep(duration)
         stop_event.set()
         await asyncio.gather(*tasks, return_exceptions=True)

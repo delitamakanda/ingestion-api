@@ -34,17 +34,13 @@ class NaturalLanguageSearchStrategy(SearchStrategy):
         self.synthesis_agent = synthesis_agent
         self.temporal_agent = temporal_agent
 
-    async def search(
-        self, request: SearchRequest, session: AsyncSession
-    ) -> SearchResponse:
+    async def search(self, request: SearchRequest, session: AsyncSession) -> SearchResponse:
         regulation_service = RegulationService(
             session,
             web_parser=WebParser(),
             pipeline=IngestionPipeline(
                 session,
-                SentenceTransformerEmbeddingService(
-                    model_name=settings.embedding_model
-                ),
+                SentenceTransformerEmbeddingService(model_name=settings.embedding_model),
             ),
         )
         if request.regulation_urls:
@@ -54,18 +50,12 @@ class NaturalLanguageSearchStrategy(SearchStrategy):
 
         timeline = None
 
-        results = await self.hybrid_retriever.search_plan(
-            plan, session=session, limit=request.limit
-        )
+        results = await self.hybrid_retriever.search_plan(plan, session=session, limit=request.limit)
         sources = self._build_sources(results)
 
         if plan.requires_temporal_analysis:
-            timeline = await self.temporal_agent.analyze(
-                question=request.query, sources=sources
-            )
-        generated = await self.synthesis_agent.synthesize(
-            question=request.query, sources=sources, timeline=timeline
-        )
+            timeline = await self.temporal_agent.analyze(question=request.query, sources=sources)
+        generated = await self.synthesis_agent.synthesize(question=request.query, sources=sources, timeline=timeline)
         return SearchResponse(
             query=request.query,
             mode=request.mode,

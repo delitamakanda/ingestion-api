@@ -14,15 +14,11 @@ class DocumentRepository:
         self.session = session
 
     async def get_by_hash(self, content_hash: str) -> Document | None:
-        result = await self.session.execute(
-            select(Document).where(Document.content_hash == content_hash)
-        )
+        result = await self.session.execute(select(Document).where(Document.content_hash == content_hash))
         return result.scalar_one_or_none()
 
     async def get_by_source_url(self, url: str) -> Document | None:
-        result = await self.session.execute(
-            select(Document).where(Document.source_url == url)
-        )
+        result = await self.session.execute(select(Document).where(Document.source_url == url))
         return result.scalar_one_or_none()
 
     async def create_document(
@@ -48,12 +44,8 @@ class DocumentRepository:
         await self.session.flush()
         return document
 
-    async def replace_chuncks(
-        self, document_id: UUID, chunks: list[ChunkData], embeddings: list[list[float]]
-    ):
-        await self.session.execute(
-            delete(DocumentChunk).where(DocumentChunk.document_id == document_id)
-        )
+    async def replace_chuncks(self, document_id: UUID, chunks: list[ChunkData], embeddings: list[list[float]]):
+        await self.session.execute(delete(DocumentChunk).where(DocumentChunk.document_id == document_id))
 
         objects = []
 
@@ -80,9 +72,7 @@ class DocumentRepository:
         document.status = "failed"
 
     async def attach_source_url(self, document_id: UUID, url: str):
-        statement = (
-            update(Document).where(Document.id == document_id).values(source_url=url)
-        )
+        statement = update(Document).where(Document.id == document_id).values(source_url=url)
         await self.session.execute(statement)
 
     async def update_metadata(self, document: Document, metadata) -> None:
@@ -90,13 +80,9 @@ class DocumentRepository:
         document.authority = metadata.authority
         document.legal_references = metadata.legal_references
         document.language = metadata.language
-        document.source_url = (
-            ", ".join(metadata.source_urls) if metadata.source_urls else None
-        )
+        document.source_url = ", ".join(metadata.source_urls) if metadata.source_urls else None
         document.publication_date = (
-            metadata.publication_date
-            if metadata.publication_date
-            else datetime.datetime.now(UTC).date()
+            metadata.publication_date if metadata.publication_date else datetime.datetime.now(UTC).date()
         )
         document.effective_date = metadata.effective_date
         document.expiration_date = metadata.expiration_date
@@ -125,7 +111,5 @@ class DocumentRepository:
         await self.session.flush()
 
     async def get_by_id(self, document_id: UUID) -> Document | None:
-        result = await self.session.execute(
-            select(Document).where(Document.id == document_id)
-        )
+        result = await self.session.execute(select(Document).where(Document.id == document_id))
         return result.scalar_one_or_none()

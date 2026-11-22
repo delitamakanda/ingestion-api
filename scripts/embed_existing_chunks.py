@@ -26,20 +26,14 @@ async def main():
 
         for start in range(0, len(chunks), BATCH_SIZE):
             batch = chunks[start : start + BATCH_SIZE]
-            texts = [
-                (f"Section: {chunk.sections}\n\n" if chunk.sections else "")
-                + chunk.text
-                for chunk in batch
-            ]
+            texts = [(f"Section: {chunk.sections}\n\n" if chunk.sections else "") + chunk.text for chunk in batch]
             embeddings = embedding_service.embed_documents(texts)
 
             for chunk, embedding in zip(batch, embeddings, strict=True):
                 chunk.embedding = embedding
 
             await session.commit()
-            print(
-                f"{min(start + BATCH_SIZE, len(chunks))} / {len(chunks)} chunks embedded: {batch[0].document_id}"
-            )
+            print(f"{min(start + BATCH_SIZE, len(chunks))} / {len(chunks)} chunks embedded: {batch[0].document_id}")
 
 
 if __name__ == "__main__":

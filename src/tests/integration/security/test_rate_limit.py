@@ -21,9 +21,7 @@ async def test_invalid_rate_limit_policy(redis_client, limit, window_seconds):
     limiter = RedisRateLimiter(redis_client)
 
     with pytest.raises(ValueError):
-        await limiter.is_allowed(
-            key="test:invalid_policy", limit=limit, window_seconds=window_seconds
-        )
+        await limiter.is_allowed(key="test:invalid_policy", limit=limit, window_seconds=window_seconds)
 
 
 @pytest.mark.integration
@@ -32,12 +30,7 @@ async def test_concurrent_requests_respect_limit(redis_client):
     limiter = RedisRateLimiter(redis_client)
 
     try:
-        results = await asyncio.gather(
-            *[
-                limiter.is_allowed(key=key, limit=5, window_seconds=60)
-                for _ in range(20)
-            ]
-        )
+        results = await asyncio.gather(*[limiter.is_allowed(key=key, limit=5, window_seconds=60) for _ in range(20)])
         allowed = sum(result.allowed for result in results)
         rejected = sum(not result.allowed for result in results)
         assert allowed == 5

@@ -16,10 +16,7 @@ class WebParser:
                     "AppleWebKit/537.36 (KHTML, like Gecko) "
                     "Chrome/152.0.0.0 Safari/537.36"
                 ),
-                "Accept": (
-                    "text/html,application/xhtml+xml,application/xml;q=0.9,"
-                    "application/pdf;q=0.8,*/*;q=0.7"
-                ),
+                "Accept": ("text/html,application/xhtml+xml,application/xml;q=0.9,application/pdf;q=0.8,*/*;q=0.7"),
                 "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",
             },
         ) as client:
@@ -41,23 +38,11 @@ class WebParser:
                 continue
             if node.name.startswith("h"):
                 current_section = text_content
-                elements.append(
-                    DocumentElement(
-                        type="heading", content=text_content, section=current_section
-                    )
-                )
+                elements.append(DocumentElement(type="heading", content=text_content, section=current_section))
             elif node.name == "table":
-                elements.append(
-                    DocumentElement(
-                        type="table", content=text_content, section=current_section
-                    )
-                )
+                elements.append(DocumentElement(type="table", content=text_content, section=current_section))
             else:
-                elements.append(
-                    DocumentElement(
-                        type="paragraph", content=text_content, section=current_section
-                    )
-                )
+                elements.append(DocumentElement(type="paragraph", content=text_content, section=current_section))
 
         title = soup.title.string.strip() if soup.title and soup.title.string else url
 

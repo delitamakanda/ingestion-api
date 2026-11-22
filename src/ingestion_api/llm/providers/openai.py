@@ -14,9 +14,7 @@ class OpenAILLMProvider(LLMProvider):
         self.client = AsyncOpenAI(api_key=api_key)
         self.model = model
 
-    async def structured(
-        self, *, system_prompt: str, user_prompt: str, schema: type[T]
-    ) -> T:
+    async def structured(self, *, system_prompt: str, user_prompt: str, schema: type[T]) -> T:
         start_time = time.perf_counter()
         try:
             response = await self.client.responses.parse(
@@ -34,7 +32,7 @@ class OpenAILLMProvider(LLMProvider):
             )
             LLM_REQUESTS_TOTAL.labels("failed").inc()
             LLM_DURATION_SECONDS.observe((time.perf_counter() - start_time) * 1000)
-            return None
+            raise
         logger.info(
             "openai_llm_provider.structured.completed",
             system_prompt=system_prompt,
@@ -43,6 +41,8 @@ class OpenAILLMProvider(LLMProvider):
         )
         LLM_REQUESTS_TOTAL.labels("completed").inc()
         LLM_DURATION_SECONDS.observe((time.perf_counter() - start_time) * 1000)
+        if response.output_parsed is None:
+            raise ValueError("LLM returned no parsable structured output")
         return response.output_parsed
 
     async def generate_text(self, *, system_prompt: str, user_prompt: str) -> str:

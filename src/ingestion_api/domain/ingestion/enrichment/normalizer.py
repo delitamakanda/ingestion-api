@@ -2,9 +2,7 @@ from ingestion_api.domain.ingestion.enrichment.models import ExtractedMetadata
 
 
 class MetadataNormalizer:
-    def merge(
-        self, deterministic: ExtractedMetadata, llm_metadata
-    ) -> ExtractedMetadata:
+    def merge(self, deterministic: ExtractedMetadata, llm_metadata) -> ExtractedMetadata:
         result = deterministic.model_copy(deep=True)
 
         if not result.countries:
@@ -42,9 +40,7 @@ class MetadataNormalizer:
             if result.expiration_date:
                 result.confidence.expiration_date = 0.8
 
-        result.legal_references = sorted(
-            set(result.legal_references) | set(llm_metadata.legal_references)
-        )
+        result.legal_references = sorted(set(result.legal_references) | set(llm_metadata.legal_references))
 
         result.topics = sorted(set(llm_metadata.topics))
 

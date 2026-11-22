@@ -26,9 +26,7 @@ DatabaseSession = Annotated[AsyncSession, Depends(get_db)]
 @router.get("/{document_id}/chunks")
 async def get_document_chunks(document_id: UUID, db: DatabaseSession):
     statement = (
-        select(DocumentChunk)
-        .where(DocumentChunk.document_id == document_id)
-        .order_by(DocumentChunk.chunk_index)
+        select(DocumentChunk).where(DocumentChunk.document_id == document_id).order_by(DocumentChunk.chunk_index)
     )
     result = await db.execute(statement)
     chunks = result.scalars().all()

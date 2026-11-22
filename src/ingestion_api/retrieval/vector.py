@@ -12,9 +12,7 @@ class VectorRetriever:
         self.session = session
         self.embedding_service = embedding_service
 
-    async def search(
-        self, request: SearchRequest, session: AsyncSession, limit: int = 30
-    ) -> list[SearchResult]:
+    async def search(self, request: SearchRequest, session: AsyncSession, limit: int = 30) -> list[SearchResult]:
         query_embedding = self.embedding_service.embed_query(request.query)
 
         distance = DocumentChunk.embedding.cosine_distance(query_embedding)

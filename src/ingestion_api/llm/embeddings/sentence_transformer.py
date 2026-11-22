@@ -1,3 +1,5 @@
+from typing import cast
+
 from sentence_transformers import SentenceTransformer
 
 from ingestion_api.llm.embeddings.base import EmbeddingService
@@ -9,13 +11,9 @@ class SentenceTransformerEmbeddingService(EmbeddingService):
 
     def embed_documents(self, texts: list[str]) -> list[list[float]]:
         passages = [f"passage: {text}" for text in texts]
-        embeddings = self.model.encode(
-            passages, normalize_embeddings=True, batch_size=32, show_progress_bar=False
-        )
-        return embeddings.tolist()
+        embeddings = self.model.encode(passages, normalize_embeddings=True, batch_size=32, show_progress_bar=False)
+        return cast(list[list[float]], embeddings.tolist())
 
     def embed_query(self, text: str) -> list[float]:
-        embedding = self.model.encode(
-            f"query: {text}", normalize_embeddings=True, show_progress_bar=False
-        )
-        return embedding.tolist()
+        embedding = self.model.encode(f"query: {text}", normalize_embeddings=True, show_progress_bar=False)
+        return cast(list[float], embedding.tolist())

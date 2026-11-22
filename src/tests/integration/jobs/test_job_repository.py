@@ -50,9 +50,7 @@ async def test_job_lifecycle(db_session):
     assert job.started_at is not None
     assert job.attempts == 1
 
-    await job_repository.update_job_status(
-        job, step=ProcessingStep.PARSING, progress=20
-    )
+    await job_repository.update_job_status(job, step=ProcessingStep.PARSING, progress=20)
 
     assert job.progress == 20
 

@@ -31,9 +31,7 @@ async def login(
     user_service = UserService(user_repository)
 
     try:
-        user = await user_service.authenticate_user(
-            email=request.email, password=request.password
-        )
+        user = await user_service.authenticate_user(email=request.email, password=request.password)
     except InvalidCredentialsError as exc:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

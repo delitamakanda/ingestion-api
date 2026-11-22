@@ -10,7 +10,7 @@ from ingestion_api.domain.ingestion.schemas import DocumentElement, ParsedDocume
 
 class DocxParser(DocumentParser):
     async def parse(self, file_path: Path) -> ParsedDocument:
-        document = Document(file_path)
+        document = Document(str(file_path))
         elements: list[DocumentElement] = []
 
         current_section: str | None = None
@@ -59,9 +59,7 @@ class DocxParser(DocumentParser):
                     )
                 )
 
-        return ParsedDocument(
-            elements=elements, filename=file_path.name, title=title, metadata={}
-        )
+        return ParsedDocument(elements=elements, filename=file_path.name, title=title, metadata={})
 
     @staticmethod
     def _heading_level(style_name: str) -> int:

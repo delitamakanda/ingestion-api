@@ -8,13 +8,9 @@ class Settings(BaseSettings):
 
     environment: str = "dev"
 
-    database_url: str = (
-        "postgresql+asyncpg://postgres:postgres@localhost:5432/ingestion_api"
-    )
+    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/ingestion_api"
 
-    alembic_database_url: str = (
-        "postgresql+asyncpg://postgres:postgres@localhost:5432/ingestion_api"
-    )
+    alembic_database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/ingestion_api"
 
     upload_dir: str = "./data/uploads"
 

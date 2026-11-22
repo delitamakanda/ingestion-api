@@ -2,7 +2,7 @@ import pytest
 
 
 @pytest.mark.unit
-async def test_health_return_200(client):
+async def test_health_return_200(client) -> None:
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json() == {"status": "healthy"}

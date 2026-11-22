@@ -46,9 +46,7 @@ class PdfParser(DocumentParser):
                             metadata={"bbox": [block[0], block[1], block[2], block[3]]},
                         )
                     )
-        return ParsedDocument(
-            title=title, elements=elements, filename=file_path.name, metadata=metadata
-        )
+        return ParsedDocument(title=title, elements=elements, filename=file_path.name, metadata=metadata)
 
     def supports(self, extension: str) -> bool:
         return extension.lower() == ".pdf"

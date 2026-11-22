@@ -1,4 +1,4 @@
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
 from typing import Annotated
 from uuid import UUID
 
@@ -15,7 +15,7 @@ from ingestion_api.domain.users.repository import UserRepository
 bearer_scheme = HTTPBearer()
 
 
-def require_role(*allowed_roles: UserRole) -> Callable:
+def require_role(*allowed_roles: UserRole) -> Callable[..., Awaitable[User]]:
     async def role_checker(
         current_user: CurrentUser,
     ) -> User:

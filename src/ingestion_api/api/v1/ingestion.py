@@ -52,9 +52,7 @@ def get_embedding_service():
 
 
 @router.post("/documents")
-async def upload_documents(
-    files: UploadedFiles, session: Annotated[AsyncSession, Depends(get_db)]
-):
+async def upload_documents(files: UploadedFiles, session: Annotated[AsyncSession, Depends(get_db)]):
     upload_dir = Path(settings.upload_dir)
     upload_dir.mkdir(parents=True, exist_ok=True)
 

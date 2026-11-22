@@ -15,14 +15,10 @@ logger = get_logger(__name__)
 
 
 def hash_identifier(value: str) -> str:
-    return hmac.new(
-        settings.jwt_secret_key.encode(), value.encode(), hashlib.sha256
-    ).hexdigest()
+    return hmac.new(settings.jwt_secret_key.encode(), value.encode(), hashlib.sha256).hexdigest()
 
 
-async def check_login_rate_limit(
-    request: Request, payload: LoginRequest, redis: RedisClient
-) -> None:
+async def check_login_rate_limit(request: Request, payload: LoginRequest, redis: RedisClient) -> None:
     client_ip = request.client.host if request.client is not None else "unknown"
 
     normalized_email = payload.email.strip().lower()

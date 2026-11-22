@@ -215,3 +215,15 @@ curl localhost:8000/metrics
 ```
 
 [![CI](https://github.com/delitamakanda/ingestion-api/actions/workflows/ci.yml/badge.svg)](https://github.com/delitamakanda/ingestion-api/actions/workflows/ci.yml)
+
+### License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+### Acknowledgments
+
+Precommit hooks for ruff and mypy are used to ensure code quality and type safety. The project structure is designed to facilitate modular development and testing of the ingestion API components.
+
+```bash
+uv run pre-commit run --all-files
+```

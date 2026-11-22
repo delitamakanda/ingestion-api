@@ -27,7 +27,7 @@ async def not_found(client: httpx.AsyncClient):
 
 async def upload(client: httpx.AsyncClient):
     filename = random.choice(FILES)
-    async with await asyncio.to_thread(open, filename, "rb") as f:
+    with open(filename, "rb") as f:  # noqa: ASYNC230
         files = {
             "file": (
                 filename,
@@ -35,15 +35,11 @@ async def upload(client: httpx.AsyncClient):
                 "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
             )
         }
-        return await client.post(
-            f"{BASE_URL}/api/v1/ingestion/documents/", files=files, timeout=60.0
-        )
+        return await client.post(f"{BASE_URL}/api/v1/ingestion/documents/", files=files, timeout=60.0)
 
 
 async def execute_request(client: httpx.AsyncClient):
-    choice = random.choices(
-        [health, list_jobs, not_found, upload], weights=[50, 30, 15, 5]
-    )[0]
+    choice = random.choices([health, list_jobs, not_found, upload], weights=[50, 30, 15, 5])[0]
 
     started = time.perf_counter()
 
@@ -51,22 +47,16 @@ async def execute_request(client: httpx.AsyncClient):
         response = await choice(client)
 
         duration = time.perf_counter() - started
-        print(
-            f"Request to {choice.__name__} took {duration:.2f} seconds. Status code: {response.status_code}"
-        )
+        print(f"Request to {choice.__name__} took {duration:.2f} seconds. Status code: {response.status_code}")
     except httpx.HTTPError as e:
         duration = time.perf_counter() - started
-        print(
-            f"Request to {choice.__name__} failed after {duration:.2f} seconds. Error: {e}"
-        )
+        print(f"Request to {choice.__name__} failed after {duration:.2f} seconds. Error: {e}")
 
 
 async def main():
     async with httpx.AsyncClient() as client:
         for batch in range(20):  # 20 batches
-            tasks = [
-                execute_request(client) for _ in range(10)
-            ]  # 10 requests per batch
+            tasks = [execute_request(client) for _ in range(10)]  # 10 requests per batch
             await asyncio.gather(*tasks)
             await asyncio.sleep(
                 random.uniform(0.1, 1.0)

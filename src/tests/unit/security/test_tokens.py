@@ -38,9 +38,7 @@ def test_invalid_token():
 
 
 def test_token_signed_with_wrong_secret_is_rejected():
-    token = jwt.encode(
-        {"sub": "user_id", "role": "admin"}, "wrong_secret_key", algorithm="HS256"
-    )
+    token = jwt.encode({"sub": "user_id", "role": "admin"}, "wrong_secret_key", algorithm="HS256")
 
     # Attempt to decode the token with the wrong secret key and expect an InvalidTokenError
     with pytest.raises(InvalidTokenError):
@@ -49,9 +47,7 @@ def test_token_signed_with_wrong_secret_is_rejected():
 
 def test_expired_token_is_rejected():
     # Create a token that expires immediately
-    token = create_access_token(
-        sub="user_id", role="admin", expires_delta=timedelta(seconds=-1)
-    )
+    token = create_access_token(sub="user_id", role="admin", expires_delta=timedelta(seconds=-1))
 
     # Attempt to decode the expired token and expect an InvalidTokenError
     with pytest.raises(InvalidTokenError):

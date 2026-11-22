@@ -29,9 +29,7 @@ async def main():
     parser_registry = ParserRegistry()
     metadata_extractor = MetadataExtractor(
         DeterminisiticMetadataExtractor(),
-        LLMMetadataExtractor(
-            OpenAILLMProvider(api_key=settings.openai_api_key, model=settings.llm_model)
-        ),
+        LLMMetadataExtractor(OpenAILLMProvider(api_key=settings.openai_api_key, model=settings.llm_model)),
         MetadataNormalizer(),
     )
     upload_dir = Path(settings.upload_dir)
@@ -52,9 +50,7 @@ async def main():
 
                 document = documents_by_hash.get(content_hash)
                 if not document:
-                    print(
-                        f"No document found for file {file_path} with hash {content_hash}"
-                    )
+                    print(f"No document found for file {file_path} with hash {content_hash}")
                     continue
                 parser = parser_registry.get(file_path)
 

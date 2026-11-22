@@ -1,4 +1,6 @@
+from collections.abc import Awaitable
 from dataclasses import dataclass
+from typing import cast
 
 from redis.asyncio import Redis
 
@@ -25,19 +27,15 @@ class RedisRateLimiter:
     def __init__(self, redis_client: Redis):
         self.redis_client = redis_client
 
-    async def is_allowed(
-        self, *, key: str, limit: int, window_seconds: int
-    ) -> RateLimitResult:
+    async def is_allowed(self, *, key: str, limit: int, window_seconds: int) -> RateLimitResult:
         if limit < 1 or window_seconds < 1:
             raise ValueError("Invalid rate limit policy")
 
-        current, ttl = await self.redis_client.eval(SCRIPT, 1, key, window_seconds)
+        current, ttl = await cast(Awaitable[list[int]], self.redis_client.eval(SCRIPT, 1, key, str(window_seconds)))
 
         allowed = current <= limit
 
         remaining = max(0, limit - current)
         retry_after = max(1, ttl) if not allowed else 0
 
-        return RateLimitResult(
-            allowed=allowed, remaining=remaining, retry_after=retry_after
-        )
+        return RateLimitResult(allowed=allowed, remaining=remaining, retry_after=retry_after)

@@ -18,9 +18,7 @@ class CrossEncoderReranker(Reranker):
     def __init__(self, model_name: str):
         self.model = CrossEncoder(model_name)
 
-    def rerank(
-        self, *, query: str, results: list[SearchResult], top_k: int
-    ) -> list[SearchResult]:
+    def rerank(self, *, query: str, results: list[SearchResult], top_k: int) -> list[SearchResult]:
         start_time = time.perf_counter()
         if not results:
             RERANKER_REQUESTS_TOTAL.inc()

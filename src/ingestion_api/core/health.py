@@ -45,9 +45,7 @@ async def check_database_health(session: AsyncSession) -> DependencyHealth:
     except Exception as e:
         latency = (time.perf_counter() - start_time) * 1000  # Convert to milliseconds
         logger.exception("health.database.check_failed", exc_info=e)
-        return DependencyHealth(
-            status=HealthStatus.UNHEALTHY, latency=latency, error=str(e)
-        )
+        return DependencyHealth(status=HealthStatus.UNHEALTHY, latency=latency, error=str(e))
 
 
 async def check_redis_health() -> DependencyHealth:
@@ -67,9 +65,7 @@ async def check_redis_health() -> DependencyHealth:
     except Exception as e:
         latency = (time.perf_counter() - start_time) * 1000  # Convert to milliseconds
         logger.exception("health.redis.check_failed", exc_info=e)
-        return DependencyHealth(
-            status=HealthStatus.UNHEALTHY, latency=latency, error=str(e)
-        )
+        return DependencyHealth(status=HealthStatus.UNHEALTHY, latency=latency, error=str(e))
     finally:
         if redis_pool:
             await redis_pool.aclose()

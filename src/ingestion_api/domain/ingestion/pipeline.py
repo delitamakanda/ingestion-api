@@ -2,10 +2,10 @@ from collections.abc import Awaitable, Callable
 from datetime import UTC, datetime
 from pathlib import Path
 
-from docx import document
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from ingestion_api.core.config import settings
+from ingestion_api.domain.documents.models import Document
 from ingestion_api.domain.documents.repository import DocumentRepository
 from ingestion_api.domain.ingestion.chunking.semantic import SemanticChunker
 from ingestion_api.domain.ingestion.enrichment.deterministic import (
@@ -13,7 +13,9 @@ from ingestion_api.domain.ingestion.enrichment.deterministic import (
 )
 from ingestion_api.domain.ingestion.enrichment.extractor import MetadataExtractor
 from ingestion_api.domain.ingestion.enrichment.llm import LLMMetadataExtractor
+from ingestion_api.domain.ingestion.enrichment.models import ExtractedMetadata
 from ingestion_api.domain.ingestion.enrichment.normalizer import MetadataNormalizer
+from ingestion_api.domain.ingestion.exceptions import PermanentIngestionError
 from ingestion_api.domain.ingestion.parsers.registry import ParserRegistry
 from ingestion_api.domain.ingestion.schemas import ChunkData
 from ingestion_api.llm.embeddings.base import EmbeddingService
@@ -23,7 +25,7 @@ ProgressCallback = Callable[[str, int], Awaitable[None]]
 
 
 class IngestionPipeline:
-    def __init__(self, session: AsyncSession, embedding_service: EmbeddingService):
+    def __init__(self, session: AsyncSession, embedding_service: EmbeddingService) -> None:
         self.session = session
         self.embedding_service = embedding_service
         self.document_repository = DocumentRepository(session)
@@ -31,11 +33,7 @@ class IngestionPipeline:
         self.chunker = SemanticChunker()
         self.metadata_extractor = MetadataExtractor(
             DeterminisiticMetadataExtractor(),
-            LLMMetadataExtractor(
-                OpenAILLMProvider(
-                    api_key=settings.openai_api_key, model=settings.llm_model
-                )
-            ),
+            LLMMetadataExtractor(OpenAILLMProvider(api_key=settings.openai_api_key, model=settings.llm_model)),
             MetadataNormalizer(),
         )
 
@@ -46,7 +44,7 @@ class IngestionPipeline:
         content_hash: str,
         original_filename: str,
         on_progress: ProgressCallback | None = None,
-    ):
+    ) -> Document:
         existing_document = await self.document_repository.get_by_hash(content_hash)
 
         if existing_document:
@@ -96,9 +94,7 @@ class IngestionPipeline:
                         "publication_date": metadata.publication_date.isoformat()
                         if metadata.publication_date
                         else None,
-                        "effective_date": metadata.effective_date.isoformat()
-                        if metadata.effective_date
-                        else None,
+                        "effective_date": metadata.effective_date.isoformat() if metadata.effective_date else None,
                     }
                 )
 
@@ -120,7 +116,7 @@ class IngestionPipeline:
             await self.session.rollback()
             raise
 
-    def _prepare_chunk_text(self, chunk: ChunkData, metadata) -> str:
+    def _prepare_chunk_text(self, chunk: ChunkData, metadata: ExtractedMetadata) -> str:
         parts = []
 
         if metadata.countries:
@@ -135,15 +131,17 @@ class IngestionPipeline:
         parts.append(chunk.text)
         return "\n\n".join(parts)
 
-    async def _progress(
-        self, callback: ProgressCallback | None, step: str, progress: int
-    ):
+    async def _progress(self, callback: ProgressCallback | None, step: str, progress: int) -> None:
         if callback is not None:
             await callback(step, progress)
 
     async def reindex(
-        self, *, file_path: Path, on_progress: ProgressCallback | None = None
-    ):
+        self, *, file_path: Path, content_hash: str, on_progress: ProgressCallback | None = None
+    ) -> Document:
+        document = await self.document_repository.get_by_hash(content_hash)
+        if document is None:
+            raise PermanentIngestionError(f"No document found to reindex for content hash {content_hash}")
+
         parser = self.parser_registry.get(file_path)
 
         await self._progress(on_progress, "parsing", 10)
@@ -166,9 +164,7 @@ class IngestionPipeline:
 
         await self._progress(on_progress, "indexing", 90)
 
-        await self.document_repository.update_metadata(
-            document=document, metadata=metadata
-        )
+        await self.document_repository.update_metadata(document=document, metadata=metadata)
 
         for chunk in chunks:
             chunk.metadata.update(
@@ -177,18 +173,12 @@ class IngestionPipeline:
                     "source_type": metadata.source_type,
                     "authority": metadata.authority,
                     "legal_references": metadata.legal_references,
-                    "publication_date": metadata.publication_date.isoformat()
-                    if metadata.publication_date
-                    else None,
-                    "effective_date": metadata.effective_date.isoformat()
-                    if metadata.effective_date
-                    else None,
+                    "publication_date": metadata.publication_date.isoformat() if metadata.publication_date else None,
+                    "effective_date": metadata.effective_date.isoformat() if metadata.effective_date else None,
                 }
             )
 
-        await self.document_repository.replace_chuncks(
-            document_id=document.id, chunks=chunks, embeddings=embeddings
-        )
+        await self.document_repository.replace_chuncks(document_id=document.id, chunks=chunks, embeddings=embeddings)
         await self.document_repository.update_processing_version(
             document=document,
             processing_version=settings.processing_version,
@@ -197,3 +187,5 @@ class IngestionPipeline:
             metadata_version=settings.metadata_version,
             embedding_model=settings.embedding_model,
         )
+        await self.session.commit()
+        return document

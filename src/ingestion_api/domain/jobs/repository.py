@@ -67,9 +67,7 @@ class JobRepository:
         job.finished_at = None
         await self.session.flush()
 
-    async def update_job_status(
-        self, job: IngestionJob, *, step: ProcessingStep, progress: int
-    ):
+    async def update_job_status(self, job: IngestionJob, *, step: ProcessingStep, progress: int):
         job.status = step.value
         job.current_step = step.value
         job.progress = progress
@@ -87,9 +85,7 @@ class JobRepository:
         job.error_message = None
         await self.session.flush()
 
-    async def mark_failed(
-        self, job: IngestionJob, *, error_code: str, error_message: str
-    ) -> None:
+    async def mark_failed(self, job: IngestionJob, *, error_code: str, error_message: str) -> None:
         job.status = JobStatus.FAILED
         job.error_code = error_code
         job.error_message = error_message
@@ -104,9 +100,7 @@ class JobRepository:
             JobStatus.CHUNKING.value,
             JobStatus.INDEXING.value,
         ]
-        stmt = select(IngestionJob).where(
-            IngestionJob.status.in_(active), IngestionJob.updated_at < before
-        )
+        stmt = select(IngestionJob).where(IngestionJob.status.in_(active), IngestionJob.updated_at < before)
         result = await self.session.execute(stmt)
         return list(result.scalars().all())
 

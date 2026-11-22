@@ -42,9 +42,7 @@ async def test_get_user_by_id(db_session):
 async def test_me_returns_current_user(async_client, db_session):
     repository = UserRepository(db_session)
     service = UserService(repository)
-    user = await service.create_user(
-        email="test@example.com", password="SuperSecretPassword", role=UserRole.USER
-    )
+    user = await service.create_user(email="test@example.com", password="SuperSecretPassword", role=UserRole.USER)
     await db_session.commit()  # Commit the transaction to save the user in the database
     token = create_access_token(sub=str(user.id), role=user.role.value)
 
@@ -81,9 +79,7 @@ async def test_me_with_unknown_user_returns_401(async_client, db_session):
 async def test_inactive_user_returns_401(async_client, db_session):
     repository = UserRepository(db_session)
     service = UserService(repository)
-    user = await service.create_user(
-        email="test@example.com", password="SuperSecretPassword", role=UserRole.USER
-    )
+    user = await service.create_user(email="test@example.com", password="SuperSecretPassword", role=UserRole.USER)
     user.is_active = False
     await db_session.commit()  # Commit the transaction to save the user in the database
     token = create_access_token(sub=str(user.id), role=user.role.value)
@@ -107,18 +103,10 @@ async def test_me_with_invalid_token_returns_401(async_client):
 async def test_email_must_be_unique(db_session):
     repository = UserRepository(db_session)
     password_hash = hash_password("password")
-    await repository.create_user(
-        email="test@example.com", password=password_hash, role=UserRole.USER
-    )
+    await repository.create_user(email="test@example.com", password=password_hash, role=UserRole.USER)
 
-    await (
-        db_session.commit()
-    )  # Commit the transaction to save the first user in the database
+    await db_session.commit()  # Commit the transaction to save the first user in the database
 
     with pytest.raises(IntegrityError):
-        await repository.create_user(
-            email="test@example.com", password=password_hash, role=UserRole.USER
-        )
-        await (
-            db_session.commit()
-        )  # This should raise an IntegrityError due to unique constraint violation
+        await repository.create_user(email="test@example.com", password=password_hash, role=UserRole.USER)
+        await db_session.commit()  # This should raise an IntegrityError due to unique constraint violation
