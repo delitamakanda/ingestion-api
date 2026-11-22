@@ -77,7 +77,7 @@ strict = true
 plugins = ["pydantic.mypy"]
 mypy_path = "src"
 explicit_package_bases = true
-exclude = ["^alembic/"]
+# exclude = ["^alembic/"]
 # Untyped functions are allowed (no-untyped-def / no-untyped-call not enforced)
 disallow_untyped_defs = false
 disallow_incomplete_defs = false
