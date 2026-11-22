@@ -1,4 +1,5 @@
-from typing import ClassVar
+from collections.abc import Callable
+from typing import Any, ClassVar
 from uuid import UUID
 
 from arq import Retry
@@ -20,5 +21,5 @@ async def ingest_document(ctx, job_id: UUID):
 
 
 class WorkerSettings:
-    functions: ClassVar[list] = [ingest_document]
+    functions: ClassVar[list[Callable[..., Any]]] = [ingest_document]
     max_tries = 3

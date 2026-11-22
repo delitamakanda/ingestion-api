@@ -4,6 +4,7 @@ from pydantic import BaseModel, Field
 
 from ingestion_api.domain.documents.schemas import SourceType
 from ingestion_api.llm.agents.query_planner import SYSTEM_PROMPT
+from ingestion_api.llm.providers.base import LLMProvider
 
 
 class LLMExtractedMetadata(BaseModel):
@@ -48,7 +49,7 @@ Rules:
 
 
 class LLMMetadataExtractor:
-    def __init__(self, llm):
+    def __init__(self, llm: LLMProvider):
         self.llm = llm
 
     async def extract_metadata(self, document) -> LLMExtractedMetadata:

@@ -1,5 +1,6 @@
 import json
 
+from ingestion_api.llm.providers.base import LLMProvider
 from ingestion_api.llm.schemas import TemporalTimeline
 
 SYSTEM_PROMPT = """
@@ -25,7 +26,7 @@ Rules:
 
 
 class TemporalAgent:
-    def __init__(self, llm):
+    def __init__(self, llm: LLMProvider):
         self.llm = llm
 
     async def analyze(self, *, question: str, sources) -> TemporalTimeline:
