@@ -43,12 +43,16 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+    "pre-commit>=4.7.0",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.1.0",
     "ruff>=0.16.6",
 ]
 
 [tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=ingestion_api --cov-report=term-missing --cov-fail-under=80"
 asyncio_mode = "auto"
 filterwarnings = [
     "ignore:builtin type SwigPyPacked has no __module__ attribute:DeprecationWarning",
@@ -60,3 +64,12 @@ markers = [
     "unit: mark a test as a unit test",
     "evaluation: mark a test as an evaluation test",
 ]
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+extend-select = ["I"] # sort imports
+
+[tool.mypy]
+strict = true
