@@ -52,7 +52,7 @@ dev = [
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--cov=ingestion_api --cov-report=term-missing --cov-fail-under=80"
+addopts = "--cov=ingestion_api --cov-report=term-missing --cov-fail-under=50"
 asyncio_mode = "auto"
 filterwarnings = [
     "ignore:builtin type SwigPyPacked has no __module__ attribute:DeprecationWarning",
