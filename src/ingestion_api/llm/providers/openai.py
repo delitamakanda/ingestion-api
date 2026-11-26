@@ -10,7 +10,7 @@ logger = get_logger(__name__)
 
 
 class OpenAILLMProvider(LLMProvider):
-    def __init__(self, api_key: str, model: str = "gpt-4o-mini"):
+    def __init__(self, api_key: str, model: str = "gpt-6.1-terra"):
         self.client = AsyncOpenAI(api_key=api_key)
         self.model = model
 

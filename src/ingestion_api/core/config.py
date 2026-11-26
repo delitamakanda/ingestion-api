@@ -26,7 +26,7 @@ class Settings(BaseSettings):
 
     openai_api_key: str
 
-    llm_model: str = "gpt-5-mini"
+    llm_model: str = "gpt-6.1-terra"
 
     embedding_dimensions: int = 768
 
